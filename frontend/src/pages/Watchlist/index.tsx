@@ -93,7 +93,7 @@ export default function WatchlistPage() {
       <PageHeader
         title="Watchlist"
         action={
-          !isEmpty
+          !isLoading && !isEmpty
             ? {
                 label: 'Add',
                 onClick: handleAddCoin,
@@ -104,7 +104,7 @@ export default function WatchlistPage() {
 
       <div className="px-4 py-3">
         {/* Refresh Button */}
-        {!isEmpty && (
+        {!isLoading && !isEmpty && (
           <div className="mb-4 flex justify-end">
             <Button
               variant="ghost"
@@ -146,7 +146,7 @@ export default function WatchlistPage() {
       </div>
 
       {/* FAB */}
-      {!isEmpty && (
+      {!isLoading && !isEmpty && (
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
