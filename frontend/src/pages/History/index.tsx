@@ -1,10 +1,9 @@
 import { useState, useCallback, useMemo } from 'react'
-import { motion } from 'framer-motion'
 import { Trash2 } from 'lucide-react'
 import { useHistory, useDeleteHistory, useWatchlist } from '@/api/hooks'
 import { useTelegram } from '@/hooks/useTelegram'
 import { useToast } from '@/hooks/useToast'
-import { Button } from '@/components/ui/Button'
+import { PageHeader } from '@/components/common/PageHeader'
 import { HistoryTimeline } from '@/features/history/HistoryTimeline'
 import { HistorySkeleton } from '@/features/history/HistorySkeleton'
 import { HistoryEmpty } from '@/features/history/HistoryEmpty'
@@ -31,6 +30,8 @@ export default function History() {
       (item) => item.coin.symbol === selectedCoin
     )
   }, [historyData?.items, selectedCoin])
+
+  const hasHistory = !isLoading && filteredItems.length > 0
 
   const handleCoinChange = useCallback(
     (symbol: string) => {
@@ -64,51 +65,32 @@ export default function History() {
   }, [hapticFeedback])
 
   return (
-    <div className="min-h-screen bg-tg-bg pb-20">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-10 bg-tg-bg/80 backdrop-blur-sm border-b border-white/5 px-4 py-4"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-display font-bold text-tg-text">History</h1>
-            {historyData && (
-              <p className="text-body-sm text-tg-hint mt-1">
-                {filteredItems.length} {filteredItems.length === 1 ? 'alert' : 'alerts'} triggered
-                {historyData.retention_days && (
-                  <> • Last {historyData.retention_days} days</>
-                )}
-              </p>
-            )}
-          </div>
+    <div className={hasHistory ? 'pb-20' : ''}>
+      <PageHeader
+        title="History"
+        action={
+          hasHistory
+            ? {
+                icon: <Trash2 size={20} />,
+                onClick: handleOpenClearDialog,
+              }
+            : undefined
+        }
+      />
 
-          {filteredItems.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleOpenClearDialog}
-              className="text-danger hover:bg-danger-soft"
-            >
-              <Trash2 size={16} />
-              Clear
-            </Button>
-          )}
-        </div>
-
+      <div className="px-4 py-3">
         {/* Filters */}
-        {watchlistData && watchlistData.items.length > 0 && (
-          <HistoryFilters
-            selectedCoin={selectedCoin}
-            onCoinChange={handleCoinChange}
-            watchlist={watchlistData.items}
-          />
+        {hasHistory && watchlistData && watchlistData.items.length > 0 && (
+          <div className="mb-4">
+            <HistoryFilters
+              selectedCoin={selectedCoin}
+              onCoinChange={handleCoinChange}
+              watchlist={watchlistData.items}
+            />
+          </div>
         )}
-      </motion.div>
 
-      {/* Content */}
-      <div className="px-4 pt-4">
+        {/* Content */}
         {isLoading ? (
           <HistorySkeleton />
         ) : filteredItems.length === 0 ? (
