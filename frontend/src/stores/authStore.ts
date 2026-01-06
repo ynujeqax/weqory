@@ -43,7 +43,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'weqory-auth',
-      partialize: (state) => ({ token: state.token }),
+      partialize: (state) => ({
+        token: state.token,
+        user: state.user,
+        limits: state.limits,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 )
