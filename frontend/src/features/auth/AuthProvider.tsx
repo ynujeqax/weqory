@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useAuthStore } from '@/stores/authStore'
 import { Spinner } from '@/components/ui/Spinner'
 
 interface AuthProviderProps {
@@ -7,7 +6,6 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { token } = useAuthStore()
   const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
