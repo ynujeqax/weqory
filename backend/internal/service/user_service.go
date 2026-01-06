@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -28,15 +29,15 @@ type User struct {
 	LastName             *string
 	LanguageCode         string
 	Plan                 string
-	PlanExpiresAt        *string
+	PlanExpiresAt        *time.Time
 	PlanPeriod           *string
 	NotificationsUsed    int
-	NotificationsResetAt *string
+	NotificationsResetAt *time.Time
 	NotificationsEnabled bool
 	VibrationEnabled     bool
-	CreatedAt            string
-	UpdatedAt            string
-	LastActiveAt         string
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	LastActiveAt         time.Time
 }
 
 // UserWithLimits includes user data with plan limits
