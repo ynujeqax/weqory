@@ -114,3 +114,4 @@ services:
     name: weqory-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []  # Allow all connections (required for internal services)
