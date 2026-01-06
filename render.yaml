@@ -14,7 +14,7 @@ services:
     runtime: go
     plan: starter
     rootDir: backend
-    buildCommand: go build -o api-gateway cmd/api-gateway/main.go
+    buildCommand: go build -o api-gateway ./cmd/api-gateway
     startCommand: ./api-gateway
     healthCheckPath: /health
     envVars:
@@ -44,7 +44,7 @@ services:
     runtime: go
     plan: starter
     rootDir: backend
-    buildCommand: go build -o alert-engine cmd/alert-engine/main.go
+    buildCommand: go build -o alert-engine ./cmd/alert-engine
     startCommand: ./alert-engine
     envVars:
       - key: ENV
@@ -65,7 +65,7 @@ services:
     runtime: go
     plan: starter
     rootDir: backend
-    buildCommand: go build -o notification cmd/notification/main.go
+    buildCommand: go build -o notification ./cmd/notification
     startCommand: ./notification
     envVars:
       - key: ENV
