@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -38,7 +39,7 @@ export function PageHeader({ title, showBack, leftAction, action, className }: P
     action?.onClick()
   }
 
-  return (
+  const header = (
     <header className={cn('fixed top-0 left-0 right-0 z-40 glass', className)}>
       <div className="flex items-center justify-between px-lg h-14 max-w-md mx-auto">
         <div className="flex items-center gap-2">
@@ -74,4 +75,7 @@ export function PageHeader({ title, showBack, leftAction, action, className }: P
       </div>
     </header>
   )
+
+  // Use portal to render outside PageTransition to avoid transform affecting fixed positioning
+  return createPortal(header, document.body)
 }

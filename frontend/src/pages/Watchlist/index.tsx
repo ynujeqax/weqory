@@ -89,7 +89,7 @@ export default function WatchlistPage() {
   }
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="pb-20">
       <PageHeader
         title="Watchlist"
         action={

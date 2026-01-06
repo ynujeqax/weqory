@@ -102,7 +102,7 @@ export default function AlertsPage() {
   ]
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="pb-20">
       <PageHeader
         title="Alerts"
         action={
