@@ -125,7 +125,7 @@ export default function WatchlistPage() {
 
         {/* Content */}
         {isLoading ? (
-          <WatchlistSkeletonList count={5} />
+          <WatchlistSkeletonList count={3} />
         ) : isEmpty ? (
           <WatchlistEmpty onAddCoin={handleAddCoin} />
         ) : (
