@@ -88,12 +88,14 @@ export default function WatchlistPage() {
     navigate('/watchlist/add')
   }
 
+  const hasItems = !isLoading && watchlist && watchlist.items.length > 0
+
   return (
-    <div className="pb-20">
+    <div className={hasItems ? 'pb-20' : ''}>
       <PageHeader
         title="Watchlist"
         action={
-          !isLoading && !isEmpty
+          hasItems
             ? {
                 label: 'Add',
                 onClick: handleAddCoin,
@@ -104,7 +106,7 @@ export default function WatchlistPage() {
 
       <div className="px-4 py-3">
         {/* Refresh Button */}
-        {!isLoading && !isEmpty && (
+        {hasItems && (
           <div className="mb-4 flex justify-end">
             <Button
               variant="ghost"
@@ -146,7 +148,7 @@ export default function WatchlistPage() {
       </div>
 
       {/* FAB */}
-      {!isLoading && !isEmpty && (
+      {hasItems && (
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
