@@ -86,7 +86,6 @@ services:
   - type: web
     name: weqory-app
     runtime: static
-    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
