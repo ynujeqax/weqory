@@ -118,14 +118,22 @@ func main() {
 		SlowThreshold: 500 * time.Millisecond,
 	}))
 
-	// CORS configuration - strict in production, permissive in development
-	corsOrigins := "*"
-	if cfg.IsProduction() && cfg.Telegram.MiniAppURL != "" {
-		corsOrigins = cfg.Telegram.MiniAppURL
-	}
-
+	// CORS configuration
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     corsOrigins,
+		AllowOriginsFunc: func(origin string) bool {
+			// In production, only allow specific origins
+			if cfg.IsProduction() {
+				if cfg.Telegram.MiniAppURL != "" && origin == cfg.Telegram.MiniAppURL {
+					return true
+				}
+				// Allow Render preview URLs and common Telegram domains
+				return origin == "https://weqory-app.onrender.com" ||
+					origin == "https://web.telegram.org" ||
+					origin == "https://telegram.org"
+			}
+			// In development, allow all origins
+			return true
+		},
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
 		AllowHeaders:     "Origin,Content-Type,Accept,Authorization,X-Request-ID,X-Telegram-Init-Data",
 		AllowCredentials: true,
