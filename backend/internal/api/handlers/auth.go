@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"log/slog"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/weqory/backend/internal/api/dto"
 	"github.com/weqory/backend/internal/service"
@@ -35,6 +37,7 @@ func (h *AuthHandler) Authenticate(c *fiber.Ctx) error {
 
 	result, err := h.authService.Authenticate(c.Context(), req.InitData)
 	if err != nil {
+		slog.Error("auth failed", slog.String("error", err.Error()), slog.String("init_data_length", string(rune(len(req.InitData)))))
 		return sendError(c, err)
 	}
 
