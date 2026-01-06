@@ -23,16 +23,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         // Validate initData and get user
-        const response = await apiClient.post('/auth/validate', {
-          initData,
+        const response = await apiClient.post('/auth/telegram', {
+          init_data: initData,
         })
 
-        if (response.data.success) {
-          const { user, token: authToken, limits } = response.data.data
+        const { user, token: authToken } = response.data
 
-          setUser(user)
-          setToken(authToken)
-          setLimits(limits)
+        setUser(user)
+        setToken(authToken)
+        if (user.limits) {
+          setLimits(user.limits)
         }
       } catch (error) {
         console.error('Auth initialization failed:', error)
