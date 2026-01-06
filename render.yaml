@@ -8,13 +8,13 @@ databases:
     user: weqory
 
 services:
-  # API Gateway (main backend)
+  # API Gateway (main backend) - includes alert engine and notification in single process
   - type: web
     name: weqory-api
     runtime: go
     plan: free
     rootDir: backend
-    buildCommand: go build -o api-gateway ./cmd/api-gateway
+    buildCommand: go build -o api-gateway cmd/api-gateway/main.go
     startCommand: ./api-gateway
     healthCheckPath: /health
     envVars:
@@ -37,50 +37,6 @@ services:
         generateValue: true
       - key: TELEGRAM_MINI_APP_URL
         sync: false  # Set after frontend deploy
-
-  # Alert Engine (background worker)
-  - type: worker
-    name: weqory-alert-engine
-    runtime: go
-    plan: free
-    rootDir: backend
-    buildCommand: go build -o alert-engine ./cmd/alert-engine
-    startCommand: ./alert-engine
-    envVars:
-      - key: ENV
-        value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: weqory-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: weqory-redis
-          type: redis
-          property: connectionString
-
-  # Notification Service (background worker)
-  - type: worker
-    name: weqory-notification
-    runtime: go
-    plan: free
-    rootDir: backend
-    buildCommand: go build -o notification ./cmd/notification
-    startCommand: ./notification
-    envVars:
-      - key: ENV
-        value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: weqory-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: weqory-redis
-          type: redis
-          property: connectionString
-      - key: TELEGRAM_BOT_TOKEN
-        sync: false  # Set manually in dashboard
 
   # Frontend (Static Site)
   - type: web
