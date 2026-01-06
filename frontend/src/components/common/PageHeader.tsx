@@ -40,7 +40,7 @@ export function PageHeader({ title, showBack, leftAction, action, className }: P
 
   return (
     <header className={cn('fixed top-0 left-0 right-0 z-40 glass', className)}>
-      <div className="flex items-center justify-between px-lg py-md">
+      <div className="flex items-center justify-between px-lg py-md max-w-md mx-auto">
         <div className="flex items-center gap-2">
           {showBack && (
             <button
