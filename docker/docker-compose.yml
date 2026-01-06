@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: weqory-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: weqory
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../backend/db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: weqory-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ../backend
+      dockerfile: cmd/api-gateway/Dockerfile
+    container_name: weqory-api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/weqory?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Alert Engine
+  alert-engine:
+    build:
+      context: ../backend
+      dockerfile: cmd/alert-engine/Dockerfile
+    container_name: weqory-alert-engine
+    ports:
+      - "8081:8081"
+    environment:
+      PORT: "8081"
+      ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/weqory?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      BINANCE_WS_URL: wss://stream.binance.com:9443/ws
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Notification Service
+  notification:
+    build:
+      context: ../backend
+      dockerfile: cmd/notification/Dockerfile
+    container_name: weqory-notification
+    ports:
+      - "8082:8082"
+    environment:
+      PORT: "8082"
+      ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/weqory?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Frontend (development)
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    container_name: weqory-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:8080
+      VITE_WS_URL: ws://localhost:8080/ws
+    volumes:
+      - ../frontend/src:/app/src
+      - ../frontend/public:/app/public
+    depends_on:
+      - api-gateway
+
+volumes:
+  postgres_data:
+  redis_data:

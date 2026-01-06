@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/
+*.cover
+*.out
+
+# Go binaries
+*.test
+api-gateway
+alert-engine
+notification
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Docker volumes
+postgres_data/
+redis_data/
+
+# Secrets
+*.pem
+*.key
+*.crt
+credentials.json
