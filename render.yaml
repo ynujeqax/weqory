@@ -58,6 +58,8 @@ services:
           name: weqory-redis
           type: redis
           property: connectionString
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
 
   # Notification Service (background worker)
   - type: worker
