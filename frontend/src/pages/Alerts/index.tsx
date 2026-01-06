@@ -4,6 +4,8 @@ import { Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { hapticFeedback } from '@telegram-apps/sdk'
 import { useAlerts, useUpdateAlert, useDeleteAlert } from '@/api/hooks'
+import { PageHeader } from '@/components/common/PageHeader'
+import { Button } from '@/components/ui/Button'
 import { Tabs } from '@/components/ui/Tabs'
 import { AlertCard } from '@/features/alerts/AlertCard'
 import { AlertSkeleton } from '@/features/alerts/AlertSkeleton'
@@ -90,6 +92,9 @@ export default function AlertsPage() {
     setDeletingAlertId(null)
   }
 
+  const hasAlerts = !isLoading && data?.items && data.items.length > 0
+  const isEmpty = !isLoading && (!data?.items || data.items.length === 0)
+
   const tabs = [
     { id: 'active' as const, label: 'Active', count: data?.items.filter((a) => !a.isPaused).length },
     { id: 'paused' as const, label: 'Paused', count: data?.items.filter((a) => a.isPaused).length },
@@ -97,44 +102,57 @@ export default function AlertsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-tg-bg pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-tg-bg/95 backdrop-blur-xl border-b border-white/5">
-        <div className="px-4 pt-4 pb-3">
-          <h1 className="text-2xl font-bold text-tg-text mb-4">Alerts</h1>
-          <Tabs
-            tabs={tabs}
-            activeTab={activeTab}
-            onChange={(tab) => setActiveTab(tab as AlertTab)}
-          />
-        </div>
-      </div>
+    <div className="min-h-screen pb-20">
+      <PageHeader
+        title="Alerts"
+        action={
+          hasAlerts
+            ? {
+                label: 'Add',
+                onClick: handleCreate,
+              }
+            : undefined
+        }
+      />
 
-      {/* Content */}
-      <div className="px-4 pt-4">
+      <div className="px-4 py-3">
+        {/* Filter Tabs - only show when alerts exist */}
+        {hasAlerts && (
+          <div className="mb-4">
+            <Tabs
+              tabs={tabs}
+              activeTab={activeTab}
+              onChange={(tab) => setActiveTab(tab as AlertTab)}
+            />
+          </div>
+        )}
+
+        {/* Content */}
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <AlertSkeleton key={i} />
             ))}
           </div>
+        ) : isEmpty ? (
+          <AlertEmpty
+            title="No alerts yet"
+            description="Create your first alert to get started"
+            showCreateButton={true}
+          />
         ) : filteredAlerts.length === 0 ? (
           <AlertEmpty
             title={
               activeTab === 'paused'
                 ? 'No paused alerts'
-                : activeTab === 'active'
-                  ? 'No active alerts'
-                  : 'No alerts yet'
+                : 'No active alerts'
             }
             description={
               activeTab === 'paused'
                 ? 'You have no paused alerts'
-                : activeTab === 'active'
-                  ? 'Create alerts to get notified about price movements'
-                  : 'Create your first alert to get started'
+                : 'All your alerts are paused'
             }
-            showCreateButton={activeTab !== 'paused'}
+            showCreateButton={false}
           />
         ) : (
           <motion.div layout className="space-y-3">
@@ -152,17 +170,22 @@ export default function AlertsPage() {
         )}
       </div>
 
-      {/* FAB */}
-      {!isLoading && (
-        <motion.button
+      {/* FAB - only show when alerts exist */}
+      {hasAlerts && (
+        <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={handleCreate}
-          className="fixed bottom-20 right-6 w-14 h-14 rounded-full bg-tg-button text-tg-button-text shadow-lg flex items-center justify-center z-20"
+          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          className="fixed bottom-24 right-4 z-10"
         >
-          <Plus className="w-6 h-6" />
-        </motion.button>
+          <Button
+            onClick={handleCreate}
+            size="lg"
+            className="rounded-full w-14 h-14 shadow-xl shadow-black/20"
+          >
+            <Plus size={24} />
+          </Button>
+        </motion.div>
       )}
 
       {/* Delete Dialog */}
