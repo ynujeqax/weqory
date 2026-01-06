@@ -72,7 +72,8 @@ export const watchlistApi = {
     if (search) params.append('search', search)
     if (limit) params.append('limit', limit.toString())
 
-    const response = await apiClient.get<AvailableCoinsResponse>('/watchlist/available-coins', { params })
+    // Use public endpoint for coins list
+    const response = await apiClient.get<AvailableCoinsResponse>('/coins', { params })
     return response.data
   },
 }

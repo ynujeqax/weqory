@@ -98,6 +98,13 @@ func setupPublicRoutes(router fiber.Router, cfg *Config) {
 	// Auth routes
 	auth := router.Group("/auth")
 	auth.Post("/telegram", cfg.Handlers.Auth.Authenticate)
+
+	// Public market routes (same data for all users)
+	market := router.Group("/market")
+	market.Get("/overview", cfg.Handlers.Market.GetMarketOverview)
+
+	// Public coins list (for market page)
+	router.Get("/coins", cfg.Handlers.Watchlist.GetAvailableCoins)
 }
 
 // setupProtectedRoutes sets up routes that require authentication
@@ -127,10 +134,6 @@ func setupProtectedRoutes(router fiber.Router, cfg *Config) {
 	// History routes
 	history := router.Group("/history")
 	history.Get("/", cfg.Handlers.History.GetHistory)
-
-	// Market routes
-	market := router.Group("/market")
-	market.Get("/overview", cfg.Handlers.Market.GetMarketOverview)
 }
 
 // setupWebSocketRoutes sets up WebSocket routes
