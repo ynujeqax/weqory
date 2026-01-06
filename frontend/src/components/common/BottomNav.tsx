@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { LayoutList, Bell, History, TrendingUp, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTelegram } from '@/hooks/useTelegram'
@@ -32,18 +33,22 @@ export function BottomNav() {
             <button
               key={item.path}
               onClick={() => handleNavigation(item.path)}
-              className={cn(
-                'flex items-center justify-center flex-1 h-full',
-                'transition-colors duration-200'
-              )}
+              className="flex items-center justify-center flex-1 h-full"
             >
-              <item.icon
-                size={24}
-                className={cn(
-                  'transition-colors',
-                  isActive ? 'text-tg-button' : 'text-tg-hint'
-                )}
-              />
+              <motion.div
+                animate={{
+                  scale: isActive ? 1.15 : 1,
+                }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              >
+                <item.icon
+                  size={24}
+                  className={cn(
+                    'transition-colors duration-200',
+                    isActive ? 'text-tg-button' : 'text-tg-hint'
+                  )}
+                />
+              </motion.div>
             </button>
           )
         })}
