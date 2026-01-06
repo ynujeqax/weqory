@@ -16,9 +16,19 @@ export function WatchlistEmpty({ onAddCoin }: WatchlistEmptyProps) {
         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
         className="relative mb-6"
       >
-        <div className="w-20 h-20 rounded-full bg-surface-elevated flex items-center justify-center">
+        <motion.div
+          animate={{
+            scale: [1, 1.05, 1],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="w-20 h-20 rounded-full bg-surface-elevated flex items-center justify-center"
+        >
           <Eye size={36} className="text-tg-hint" />
-        </div>
+        </motion.div>
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

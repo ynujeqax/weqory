@@ -1,21 +1,33 @@
 import { motion } from 'framer-motion'
 import { Clock } from 'lucide-react'
-import { EmptyState } from '@/components/ui/EmptyState'
 
 export function HistoryEmpty() {
   return (
-    <div className="flex items-center justify-center min-h-[400px]">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center py-16 px-6 text-center"
+    >
+      {/* Icon */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        animate={{
+          scale: [1, 1.05, 1],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+        className="w-20 h-20 rounded-full bg-surface-elevated flex items-center justify-center mb-6"
       >
-        <EmptyState
-          icon={<Clock size={48} />}
-          title="No History Yet"
-          description="When your alerts trigger, they'll appear here"
-        />
+        <Clock className="w-10 h-10 text-tg-hint" />
       </motion.div>
-    </div>
+
+      {/* Text */}
+      <h3 className="text-lg font-semibold text-tg-text mb-2">No History Yet</h3>
+      <p className="text-sm text-tg-hint max-w-xs">
+        When your alerts trigger, they'll appear here
+      </p>
+    </motion.div>
   )
 }
