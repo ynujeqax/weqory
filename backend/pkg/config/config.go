@@ -9,11 +9,12 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	Redis    RedisConfig
-	Telegram TelegramConfig
-	JWT      JWTConfig
+	Server    ServerConfig
+	Database  DatabaseConfig
+	Redis     RedisConfig
+	Telegram  TelegramConfig
+	JWT       JWTConfig
+	CoinGecko CoinGeckoConfig
 }
 
 type ServerConfig struct {
@@ -45,6 +46,10 @@ type JWTConfig struct {
 	Expiry time.Duration
 }
 
+type CoinGeckoConfig struct {
+	APIKey string
+}
+
 // Load loads configuration from environment variables
 func Load() (*Config, error) {
 	cfg := &Config{
@@ -71,6 +76,9 @@ func Load() (*Config, error) {
 		JWT: JWTConfig{
 			Secret: os.Getenv("JWT_SECRET"),
 			Expiry: getEnvAsDuration("JWT_EXPIRY", 24*time.Hour),
+		},
+		CoinGecko: CoinGeckoConfig{
+			APIKey: getEnv("COINGECKO_API_KEY", ""),
 		},
 	}
 

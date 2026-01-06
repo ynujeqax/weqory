@@ -14,6 +14,7 @@ import (
 	"github.com/weqory/backend/internal/api/handlers"
 	"github.com/weqory/backend/internal/api/middleware"
 	"github.com/weqory/backend/internal/api/routes"
+	"github.com/weqory/backend/internal/coingecko"
 	"github.com/weqory/backend/internal/service"
 	"github.com/weqory/backend/internal/websocket"
 	"github.com/weqory/backend/pkg/config"
@@ -96,6 +97,12 @@ func main() {
 
 	// Initialize WebSocket handler
 	wsHandler := websocket.NewHandler(wsHub, log.Logger)
+
+	// Initialize CoinGecko sync service
+	cgClient := coingecko.NewClient(cfg.CoinGecko.APIKey, log.Logger)
+	cgSync := coingecko.NewSyncService(cgClient, pool, log.Logger)
+	// Sync top 100 coins every hour
+	cgSync.StartPeriodicSync(ctx, 100, 1*time.Hour)
 
 	// Setup rate limiter
 	rateLimiter := redis.NewRateLimiter(redisClient)
