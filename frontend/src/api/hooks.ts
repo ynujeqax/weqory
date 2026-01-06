@@ -80,7 +80,6 @@ export function useAvailableCoins(search?: string, limit?: number) {
   return useQuery({
     queryKey: queryKeys.availableCoins(search),
     queryFn: () => watchlistApi.getAvailableCoins(search, limit),
-    enabled: search !== undefined,
     staleTime: 60_000, // 1 minute
   })
 }
