@@ -50,8 +50,8 @@ export default function App() {
         <BrowserRouter>
           <AuthProvider>
             <OfflineIndicator />
-            <div className="flex flex-col min-h-screen pt-14 pb-14 w-full max-w-md mx-auto">
-              <main className="flex-1">
+            <div className="flex flex-col h-screen pt-14 pb-14 w-full max-w-md mx-auto overflow-hidden">
+              <main className="flex-1 overflow-y-auto">
                 <AppRouter />
               </main>
               <BottomNav />
