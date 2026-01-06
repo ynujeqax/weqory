@@ -108,37 +108,19 @@ func (s *UserService) GetByTelegramID(ctx context.Context, telegramID int64) (*U
 	return &user, nil
 }
 
-// GetOrCreateByTelegramID gets existing user or creates a new one
+// GetOrCreateByTelegramID gets existing user or creates a new one (atomic upsert)
 func (s *UserService) GetOrCreateByTelegramID(ctx context.Context, tgUser *crypto.TelegramUser) (*UserWithLimits, error) {
-	// Try to get existing user
-	user, err := s.GetByTelegramID(ctx, tgUser.ID)
-	if err != nil && !errors.IsAppError(err) {
-		return nil, err
-	}
-
-	if user != nil {
-		// Update user info and last active
-		_, err = s.pool.Exec(ctx, `
-			UPDATE users SET
-				username = COALESCE($2, username),
-				first_name = COALESCE($3, first_name),
-				last_name = COALESCE($4, last_name),
-				language_code = COALESCE($5, language_code),
-				last_active_at = NOW()
-			WHERE id = $1
-		`, user.ID, nilIfEmpty(tgUser.Username), tgUser.FirstName, nilIfEmpty(tgUser.LastName), tgUser.LanguageCode)
-		if err != nil {
-			return nil, errors.Wrap(err, errors.ErrDatabase)
-		}
-
-		return s.GetWithLimits(ctx, user.ID)
-	}
-
-	// Create new user
+	// Use INSERT ... ON CONFLICT for atomic upsert
 	var userID int64
-	err = s.pool.QueryRow(ctx, `
+	err := s.pool.QueryRow(ctx, `
 		INSERT INTO users (telegram_id, username, first_name, last_name, language_code)
 		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (telegram_id) DO UPDATE SET
+			username = COALESCE($2, users.username),
+			first_name = COALESCE($3, users.first_name),
+			last_name = COALESCE($4, users.last_name),
+			language_code = COALESCE($5, users.language_code),
+			last_active_at = NOW()
 		RETURNING id
 	`, tgUser.ID, nilIfEmpty(tgUser.Username), tgUser.FirstName, nilIfEmpty(tgUser.LastName), tgUser.LanguageCode).Scan(&userID)
 	if err != nil {
