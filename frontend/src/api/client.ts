@@ -27,10 +27,8 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ error: string; details?: unknown }>) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      useAuthStore.getState().logout()
-    }
+    // Don't auto-logout on 401 - let components handle it
+    // This prevents logout loops during auth flow
     return Promise.reject(error)
   }
 )
