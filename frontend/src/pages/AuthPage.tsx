@@ -27,20 +27,20 @@ export default function AuthPage() {
         return
       }
 
-      const response = await apiClient.post('/auth/validate', {
-        initData,
+      const response = await apiClient.post('/auth/telegram', {
+        init_data: initData,
       })
 
-      if (response.data.success) {
-        const { user, token: authToken, limits } = response.data.data
+      const { user, token: authToken } = response.data
 
-        setUser(user)
-        setToken(authToken)
-        setLimits(limits)
-
-        toast.success('Welcome to Weqory!')
-        navigate('/', { replace: true })
+      setUser(user)
+      setToken(authToken)
+      if (user.limits) {
+        setLimits(user.limits)
       }
+
+      toast.success('Welcome to Weqory!')
+      navigate('/', { replace: true })
     } catch (error) {
       console.error('Auth failed:', error)
       toast.error('Authentication failed. Please try again.')
