@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 export function HistorySkeleton() {
   return (
     <div className="space-y-6">
-      {[1, 2].map((group) => (
+      {[1].map((group) => (
         <div key={group} className="space-y-3">
           {/* Date header skeleton */}
           <div className="flex items-center gap-3">
