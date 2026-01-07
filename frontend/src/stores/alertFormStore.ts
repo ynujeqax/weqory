@@ -98,20 +98,12 @@ export const useAlertFormStore = create<AlertFormState>((set, get) => ({
           return state.periodicInterval !== null
         }
 
-        // For percentage alerts, check value is valid
-        if (
-          state.alertType === 'PRICE_CHANGE_PCT' ||
-          state.alertType === 'VOLUME_CHANGE_PCT'
-        ) {
+        // For percentage alerts, check value is valid and timeframe selected
+        if (state.alertType === 'PRICE_CHANGE_PCT') {
           return !isNaN(value) && value > 0 && state.conditionTimeframe !== null
         }
 
-        // For volume spike, no condition value needed
-        if (state.alertType === 'VOLUME_SPIKE') {
-          return true
-        }
-
-        // For price and market cap alerts, check value is valid
+        // For price alerts, check value is valid
         return !isNaN(value) && value > 0
       }
 

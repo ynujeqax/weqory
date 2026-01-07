@@ -40,19 +40,7 @@ export function AlertPreview({
         return `Price drops below $${value.toLocaleString()}`
 
       case 'PRICE_CHANGE_PCT':
-        return `Price changes ${value >= 0 ? '+' : ''}${value}% in ${conditionTimeframe ? TIMEFRAME_LABELS[conditionTimeframe] : '...'}`
-
-      case 'VOLUME_CHANGE_PCT':
-        return `Volume changes ${value >= 0 ? '+' : ''}${value}% in ${conditionTimeframe ? TIMEFRAME_LABELS[conditionTimeframe] : '...'}`
-
-      case 'VOLUME_SPIKE':
-        return 'Significant volume spike detected'
-
-      case 'MARKET_CAP_ABOVE':
-        return `Market cap rises above $${(value / 1_000_000).toFixed(0)}M`
-
-      case 'MARKET_CAP_BELOW':
-        return `Market cap drops below $${(value / 1_000_000).toFixed(0)}M`
+        return `Price changes ${value}% in ${conditionTimeframe ? TIMEFRAME_LABELS[conditionTimeframe] : '...'}`
 
       case 'PERIODIC':
         return `Regular updates every ${periodicInterval ? TIMEFRAME_LABELS[periodicInterval] : '...'}`

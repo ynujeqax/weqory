@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Activity, BarChart3, Bell, DollarSign } from 'lucide-react'
+import { TrendingUp, TrendingDown, Activity, Bell } from 'lucide-react'
 import type { AlertType } from '@/types'
 
 interface AlertTypeIconProps {
@@ -26,30 +26,6 @@ export function AlertTypeIcon({ alertType, className = 'w-5 h-5' }: AlertTypeIco
           Icon: Activity,
           color: 'text-blue-500',
           bgColor: 'bg-blue-500/15',
-        }
-      case 'VOLUME_CHANGE_PCT':
-        return {
-          Icon: BarChart3,
-          color: 'text-purple-500',
-          bgColor: 'bg-purple-500/15',
-        }
-      case 'VOLUME_SPIKE':
-        return {
-          Icon: BarChart3,
-          color: 'text-orange-500',
-          bgColor: 'bg-orange-500/15',
-        }
-      case 'MARKET_CAP_ABOVE':
-        return {
-          Icon: DollarSign,
-          color: 'text-green-500',
-          bgColor: 'bg-green-500/15',
-        }
-      case 'MARKET_CAP_BELOW':
-        return {
-          Icon: DollarSign,
-          color: 'text-red-500',
-          bgColor: 'bg-red-500/15',
         }
       case 'PERIODIC':
         return {

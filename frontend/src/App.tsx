@@ -3,10 +3,17 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useTelegram } from '@/hooks/useTelegram'
 import { AppRouter } from '@/app/Router'
-import { BottomNav, ErrorBoundary, ToastContainer, OfflineIndicator } from '@/components/common'
+import { BottomNav, ErrorBoundary, ToastContainer, OfflineIndicator, UpdateNotification } from '@/components/common'
 import { AuthProvider } from '@/features/auth/AuthProvider'
 import { PriceStreamProvider } from '@/features/prices/PriceStreamProvider'
 import { Spinner } from '@/components/ui/Spinner'
+import { useSyncPendingMutations } from '@/api/hooks'
+
+// Component to handle background sync of pending mutations
+function OfflineSyncManager() {
+  useSyncPendingMutations()
+  return null
+}
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -51,7 +58,9 @@ export default function App() {
         <BrowserRouter>
           <AuthProvider>
             <PriceStreamProvider>
+              <OfflineSyncManager />
               <OfflineIndicator />
+              <UpdateNotification />
               <div className="flex flex-col h-screen pt-14 pb-14 w-full max-w-md mx-auto overflow-hidden">
                 <main className="flex-1 overflow-y-auto">
                   <AppRouter />

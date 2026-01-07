@@ -13,7 +13,7 @@ describe('pricesStore', () => {
 
   describe('updatePrice', () => {
     it('should add a new price to the store', () => {
-      const { updatePrice, prices } = usePricesStore.getState()
+      const { updatePrice } = usePricesStore.getState()
 
       const priceUpdate: PriceUpdate = {
         symbol: 'BTCUSDT',
@@ -140,7 +140,7 @@ describe('pricesStore', () => {
 
   describe('getPrice', () => {
     it('should return price for existing symbol', () => {
-      const { updatePrice, getPrice } = usePricesStore.getState()
+      const { updatePrice } = usePricesStore.getState()
 
       const priceUpdate: PriceUpdate = {
         symbol: 'BTCUSDT',
