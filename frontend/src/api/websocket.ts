@@ -1,12 +1,8 @@
+import type { PriceUpdate } from '@/types'
+
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080'
 
-export interface PriceUpdate {
-  symbol: string
-  price: number
-  change_24h: number
-  volume_24h: number
-  timestamp: number
-}
+export type { PriceUpdate }
 
 export interface WebSocketMessage {
   type: 'subscribe' | 'unsubscribe' | 'price_update' | 'ping' | 'pong' | 'error'

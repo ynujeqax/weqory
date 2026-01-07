@@ -70,9 +70,10 @@ func main() {
 	binanceClient := binance.NewClient(log.Logger)
 	priceCache := cache.NewPriceCache(redisClient, log.Logger)
 	publisher := alert.NewPublisher(redisClient, log.Logger)
+	pricePublisher := alert.NewPricePublisher(redisClient, log.Logger)
 
 	// Initialize alert engine
-	engine := alert.NewEngine(pool, binanceClient, priceCache, log.Logger)
+	engine := alert.NewEngine(pool, binanceClient, priceCache, pricePublisher, log.Logger)
 	engine.SetTriggerHandler(publisher.CreateTriggerHandler())
 
 	// Start retry queue processor in background

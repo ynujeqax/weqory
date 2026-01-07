@@ -95,6 +95,16 @@ func main() {
 	wsHub := websocket.NewHub(log.Logger)
 	go wsHub.Run(ctx)
 
+	// Initialize price subscriber to forward prices from Alert Engine to WebSocket clients
+	priceSubscriber := websocket.NewPriceSubscriber(redisClient, wsHub, log.Logger)
+	go func() {
+		if err := priceSubscriber.Subscribe(ctx); err != nil {
+			if ctx.Err() == nil {
+				log.Error("price subscriber error", slog.String("error", err.Error()))
+			}
+		}
+	}()
+
 	// Initialize WebSocket handler
 	wsHandler := websocket.NewHandler(wsHub, log.Logger)
 

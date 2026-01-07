@@ -33,11 +33,11 @@ type SubscribePayload struct {
 
 // PriceUpdate represents a price update message
 type PriceUpdate struct {
-	Symbol    string  `json:"symbol"`
-	Price     float64 `json:"price"`
-	Change24h float64 `json:"change_24h"`
-	Volume24h float64 `json:"volume_24h"`
-	Timestamp int64   `json:"timestamp"`
+	Symbol       string  `json:"symbol"`
+	Price        float64 `json:"price"`
+	Change24hPct float64 `json:"change24hPct"`
+	Volume24h    float64 `json:"volume24h"`
+	UpdatedAt    string  `json:"updatedAt"`
 }
 
 // Client represents a WebSocket client

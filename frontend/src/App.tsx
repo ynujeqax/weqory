@@ -5,6 +5,7 @@ import { useTelegram } from '@/hooks/useTelegram'
 import { AppRouter } from '@/app/Router'
 import { BottomNav, ErrorBoundary, ToastContainer, OfflineIndicator } from '@/components/common'
 import { AuthProvider } from '@/features/auth/AuthProvider'
+import { PriceStreamProvider } from '@/features/prices/PriceStreamProvider'
 import { Spinner } from '@/components/ui/Spinner'
 
 // Create React Query client
@@ -49,14 +50,16 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
-            <OfflineIndicator />
-            <div className="flex flex-col h-screen pt-14 pb-14 w-full max-w-md mx-auto overflow-hidden">
-              <main className="flex-1 overflow-y-auto">
-                <AppRouter />
-              </main>
-              <BottomNav />
-            </div>
-            <ToastContainer />
+            <PriceStreamProvider>
+              <OfflineIndicator />
+              <div className="flex flex-col h-screen pt-14 pb-14 w-full max-w-md mx-auto overflow-hidden">
+                <main className="flex-1 overflow-y-auto">
+                  <AppRouter />
+                </main>
+                <BottomNav />
+              </div>
+              <ToastContainer />
+            </PriceStreamProvider>
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

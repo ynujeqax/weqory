@@ -30,6 +30,7 @@ type Engine struct {
 	pool           *pgxpool.Pool
 	binanceClient  *binance.Client
 	priceCache     *cache.PriceCache
+	pricePublisher *PricePublisher
 	evaluator      *Evaluator
 	triggerHandler TriggerHandler
 	logger         *slog.Logger
@@ -52,18 +53,20 @@ func NewEngine(
 	pool *pgxpool.Pool,
 	binanceClient *binance.Client,
 	priceCache *cache.PriceCache,
+	pricePublisher *PricePublisher,
 	logger *slog.Logger,
 ) *Engine {
 	return &Engine{
-		pool:          pool,
-		binanceClient: binanceClient,
-		priceCache:    priceCache,
-		evaluator:     NewEvaluator(priceCache, logger),
-		logger:        logger,
-		alerts:        make(map[int64]*Alert),
-		symbolAlerts:  make(map[string][]*Alert),
-		priceBuffer:   make(map[string]*binance.PriceData),
-		done:          make(chan struct{}),
+		pool:           pool,
+		binanceClient:  binanceClient,
+		priceCache:     priceCache,
+		pricePublisher: pricePublisher,
+		evaluator:      NewEvaluator(priceCache, logger),
+		logger:         logger,
+		alerts:         make(map[int64]*Alert),
+		symbolAlerts:   make(map[string][]*Alert),
+		priceBuffer:    make(map[string]*binance.PriceData),
+		done:           make(chan struct{}),
 	}
 }
 
@@ -121,6 +124,11 @@ func (e *Engine) handlePriceUpdate(data binance.PriceData) {
 			slog.String("symbol", data.Symbol),
 			slog.String("error", err.Error()),
 		)
+	}
+
+	// Publish price update to WebSocket clients via Redis pub/sub
+	if e.pricePublisher != nil {
+		e.pricePublisher.Publish(ctx, data)
 	}
 
 	// Buffer price for history saving
