@@ -122,10 +122,6 @@ func validateAlertType(fl validator.FieldLevel) bool {
 		"PRICE_ABOVE":      true,
 		"PRICE_BELOW":      true,
 		"PRICE_CHANGE_PCT": true,
-		"VOLUME_CHANGE_PCT": true,
-		"VOLUME_SPIKE":     true,
-		"MARKET_CAP_ABOVE": true,
-		"MARKET_CAP_BELOW": true,
 		"PERIODIC":         true,
 	}
 	return validTypes[alertType]

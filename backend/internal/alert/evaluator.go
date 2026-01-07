@@ -13,12 +13,10 @@ import (
 type AlertType string
 
 const (
-	AlertTypePriceAbove   AlertType = "PRICE_ABOVE"
-	AlertTypePriceBelow   AlertType = "PRICE_BELOW"
-	AlertTypePriceChange  AlertType = "PRICE_CHANGE"
-	AlertTypePercentUp    AlertType = "PERCENT_UP"
-	AlertTypePercentDown  AlertType = "PERCENT_DOWN"
-	AlertTypePeriodic     AlertType = "PERIODIC"
+	AlertTypePriceAbove     AlertType = "PRICE_ABOVE"
+	AlertTypePriceBelow     AlertType = "PRICE_BELOW"
+	AlertTypePriceChangePct AlertType = "PRICE_CHANGE_PCT"
+	AlertTypePeriodic       AlertType = "PERIODIC"
 )
 
 // ConditionOperator represents comparison operators
@@ -117,14 +115,8 @@ func (e *Evaluator) checkCondition(ctx context.Context, alert *Alert, priceData 
 	case AlertTypePriceBelow:
 		return priceData.Price < alert.ConditionValue, nil
 
-	case AlertTypePriceChange:
-		return e.checkPriceChange(ctx, alert, priceData)
-
-	case AlertTypePercentUp:
-		return e.checkPercentChange(ctx, alert, priceData, true)
-
-	case AlertTypePercentDown:
-		return e.checkPercentChange(ctx, alert, priceData, false)
+	case AlertTypePriceChangePct:
+		return e.checkPriceChangePct(ctx, alert, priceData)
 
 	case AlertTypePeriodic:
 		return e.checkPeriodic(alert)
@@ -135,23 +127,9 @@ func (e *Evaluator) checkCondition(ctx context.Context, alert *Alert, priceData 
 	}
 }
 
-func (e *Evaluator) checkPriceChange(ctx context.Context, alert *Alert, priceData *binance.PriceData) (bool, error) {
-	duration := parseTimeframe(alert.ConditionTimeframe)
-	if duration == 0 {
-		// Use 24h change from price data
-		return compareValue(priceData.ChangePercent, alert.ConditionOperator, alert.ConditionValue), nil
-	}
-
-	// Get historical price change
-	changePercent, err := e.priceCache.GetPriceChange(ctx, alert.BinanceSymbol, duration)
-	if err != nil {
-		return false, err
-	}
-
-	return compareValue(changePercent, alert.ConditionOperator, alert.ConditionValue), nil
-}
-
-func (e *Evaluator) checkPercentChange(ctx context.Context, alert *Alert, priceData *binance.PriceData, isUp bool) (bool, error) {
+// checkPriceChangePct checks if price changed by at least X% within the timeframe
+// Triggers when absolute change >= conditionValue (e.g., 5% up or down)
+func (e *Evaluator) checkPriceChangePct(ctx context.Context, alert *Alert, priceData *binance.PriceData) (bool, error) {
 	duration := parseTimeframe(alert.ConditionTimeframe)
 
 	var changePercent float64
@@ -161,16 +139,19 @@ func (e *Evaluator) checkPercentChange(ctx context.Context, alert *Alert, priceD
 		// Use 24h change from Binance data
 		changePercent = priceData.ChangePercent
 	} else {
+		// Get historical price change for specified timeframe
 		changePercent, err = e.priceCache.GetPriceChange(ctx, alert.BinanceSymbol, duration)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	if isUp {
-		return changePercent >= alert.ConditionValue, nil
+	// Trigger if absolute change >= target percentage
+	absChange := changePercent
+	if absChange < 0 {
+		absChange = -absChange
 	}
-	return changePercent <= -alert.ConditionValue, nil
+	return absChange >= alert.ConditionValue, nil
 }
 
 func (e *Evaluator) checkPeriodic(alert *Alert) (bool, error) {

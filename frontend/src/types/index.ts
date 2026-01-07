@@ -58,10 +58,6 @@ export type AlertType =
   | 'PRICE_ABOVE'
   | 'PRICE_BELOW'
   | 'PRICE_CHANGE_PCT'
-  | 'VOLUME_CHANGE_PCT'
-  | 'VOLUME_SPIKE'
-  | 'MARKET_CAP_ABOVE'
-  | 'MARKET_CAP_BELOW'
   | 'PERIODIC'
 
 export type ConditionOperator = 'above' | 'below' | 'change'

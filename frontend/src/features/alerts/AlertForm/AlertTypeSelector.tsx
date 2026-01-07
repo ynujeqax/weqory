@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { TrendingUp, TrendingDown, Activity, BarChart3, Bell } from 'lucide-react'
+import { TrendingUp, TrendingDown, Activity, Bell } from 'lucide-react'
 import { hapticFeedback } from '@telegram-apps/sdk'
 import type { AlertType } from '@/types'
 
@@ -36,22 +36,6 @@ const ALERT_TYPES: AlertTypeOption[] = [
     description: 'Alert on percentage price change',
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/15',
-  },
-  {
-    type: 'VOLUME_CHANGE_PCT',
-    icon: BarChart3,
-    label: 'Volume Change %',
-    description: 'Alert on percentage volume change',
-    color: 'text-purple-500',
-    bgColor: 'bg-purple-500/15',
-  },
-  {
-    type: 'VOLUME_SPIKE',
-    icon: BarChart3,
-    label: 'Volume Spike',
-    description: 'Alert on significant volume increase',
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/15',
   },
   {
     type: 'PERIODIC',

@@ -60,11 +60,8 @@ export function ConditionInput({
       return
     }
 
-    if (
-      (alertType === 'PRICE_CHANGE_PCT' || alertType === 'VOLUME_CHANGE_PCT') &&
-      Math.abs(num) > 1000
-    ) {
-      setError('Percentage must be between -1000% and 1000%')
+    if (alertType === 'PRICE_CHANGE_PCT' && num > 100) {
+      setError('Percentage must be between 0% and 100%')
       return
     }
 
@@ -102,20 +99,8 @@ export function ConditionInput({
     )
   }
 
-  // Volume spike - no input needed
-  if (alertType === 'VOLUME_SPIKE') {
-    return (
-      <div className="p-4 rounded-xl bg-surface-elevated">
-        <p className="text-sm text-tg-hint">
-          You'll be notified when {selectedCoin.symbol} experiences a significant volume spike
-          (typically 3x or more of the average volume).
-        </p>
-      </div>
-    )
-  }
-
   // Percentage change alerts
-  if (alertType === 'PRICE_CHANGE_PCT' || alertType === 'VOLUME_CHANGE_PCT') {
+  if (alertType === 'PRICE_CHANGE_PCT') {
     return (
       <div className="space-y-4">
         <div>
@@ -126,12 +111,13 @@ export function ConditionInput({
             type="number"
             value={conditionValue}
             onChange={(e) => handleValueChange(e.target.value)}
-            placeholder="e.g., 5 or -5"
+            placeholder="e.g., 5"
             step="0.1"
+            min="0"
             error={error}
           />
           <p className="text-xs text-tg-hint mt-1">
-            Use positive for increase, negative for decrease
+            Triggers on price change in either direction (up or down)
           </p>
         </div>
 
@@ -150,9 +136,7 @@ export function ConditionInput({
         {conditionValue && conditionTimeframe && !error && (
           <div className="p-4 rounded-xl bg-surface-elevated">
             <p className="text-sm text-tg-hint">
-              Alert when {alertType === 'PRICE_CHANGE_PCT' ? 'price' : 'volume'} changes{' '}
-              {parseFloat(conditionValue) >= 0 ? '+' : ''}
-              {conditionValue}% within{' '}
+              Alert when price changes by {conditionValue}% or more (up or down) within{' '}
               {TIMEFRAMES.find((t) => t.value === conditionTimeframe)?.label}
             </p>
           </div>
