@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTelegram } from '@/hooks/useTelegram'
@@ -36,7 +35,7 @@ export function MarketFilters({ sortField, sortDirection, onSortChange }: Market
   }
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
+    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
       {sortOptions.map((option) => {
         const isActive = sortField === option.field
         const SortIcon = !isActive
@@ -46,22 +45,21 @@ export function MarketFilters({ sortField, sortDirection, onSortChange }: Market
           : ArrowDown
 
         return (
-          <motion.button
+          <button
             key={option.field}
-            whileTap={{ scale: 0.95 }}
             onClick={() => handleSort(option.field)}
             className={cn(
-              'flex items-center gap-1.5 px-3 py-2 rounded-lg',
-              'text-body-sm font-medium whitespace-nowrap',
-              'transition-colors duration-200 touch-feedback',
+              'flex items-center gap-1 px-2.5 py-1.5 rounded-md',
+              'text-[13px] font-medium whitespace-nowrap flex-shrink-0',
+              'transition-colors duration-150 touch-feedback',
               isActive
                 ? 'bg-tg-button text-tg-button-text'
-                : 'bg-surface-elevated text-tg-hint hover:bg-surface-hover'
+                : 'bg-surface-elevated text-tg-hint'
             )}
           >
             <span>{option.label}</span>
-            <SortIcon size={14} />
-          </motion.button>
+            <SortIcon size={12} />
+          </button>
         )
       })}
     </div>

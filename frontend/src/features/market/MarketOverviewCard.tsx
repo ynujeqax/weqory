@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion'
-import { TrendingUp, TrendingDown, DollarSign, BarChart3, Bitcoin } from 'lucide-react'
 import { cn, formatLargeNumber, formatPercentage, getPriceChangeColor } from '@/lib/utils'
 import type { MarketOverview } from '@/types'
 
@@ -16,74 +14,47 @@ export function MarketOverviewCard({ data }: MarketOverviewCardProps) {
   } = data
 
   return (
-    <div className="bg-surface rounded-lg p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-headline font-semibold text-tg-text">
-          Market Overview
-        </h3>
-        <motion.div
-          key={marketCapChange24hPct > 0 ? 'up' : 'down'}
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-        >
-          {marketCapChange24hPct > 0 ? (
-            <TrendingUp size={20} className="text-crypto-up" />
-          ) : (
-            <TrendingDown size={20} className="text-crypto-down" />
-          )}
-        </motion.div>
-      </div>
+    <div className="bg-surface rounded-lg px-4 py-3">
+      {/* Single row with all stats */}
+      <div className="flex items-center justify-between gap-4 text-body-sm">
+        {/* Market Cap */}
+        <div className="flex-1 min-w-0">
+          <p className="text-tg-hint mb-0.5 text-[11px] uppercase tracking-wide">Cap</p>
+          <p className="text-tg-text font-mono font-medium truncate">
+            {formatLargeNumber(totalMarketCap)}
+          </p>
+        </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <StatItem
-          icon={<DollarSign size={16} />}
-          label="Market Cap"
-          value={formatLargeNumber(totalMarketCap)}
-          change={marketCapChange24hPct}
-        />
-        <StatItem
-          icon={<BarChart3 size={16} />}
-          label="24h Volume"
-          value={formatLargeNumber(totalVolume24h)}
-        />
-        <StatItem
-          icon={<Bitcoin size={16} />}
-          label="BTC Dominance"
-          value={`${btcDominance.toFixed(1)}%`}
-        />
-        <StatItem
-          icon={<TrendingUp size={16} />}
-          label="24h Change"
-          value={formatPercentage(marketCapChange24hPct)}
-          change={marketCapChange24hPct}
-        />
-      </div>
-    </div>
-  )
-}
+        {/* 24h Change */}
+        <div className="flex-shrink-0">
+          <p className="text-tg-hint mb-0.5 text-[11px] uppercase tracking-wide">24h</p>
+          <p className={cn(
+            'font-mono font-semibold',
+            getPriceChangeColor(marketCapChange24hPct)
+          )}>
+            {formatPercentage(marketCapChange24hPct)}
+          </p>
+        </div>
 
-interface StatItemProps {
-  icon: React.ReactNode
-  label: string
-  value: string
-  change?: number
-}
+        {/* Divider */}
+        <div className="w-px h-8 bg-border-subtle" />
 
-function StatItem({ icon, label, value, change }: StatItemProps) {
-  return (
-    <div className="bg-surface-elevated rounded-lg p-3">
-      <div className="flex items-center gap-2 mb-2 text-tg-hint">
-        {icon}
-        <p className="text-body-sm">{label}</p>
+        {/* Volume */}
+        <div className="flex-1 min-w-0">
+          <p className="text-tg-hint mb-0.5 text-[11px] uppercase tracking-wide">Vol</p>
+          <p className="text-tg-text font-mono font-medium truncate">
+            {formatLargeNumber(totalVolume24h)}
+          </p>
+        </div>
+
+        {/* BTC Dominance */}
+        <div className="flex-shrink-0">
+          <p className="text-tg-hint mb-0.5 text-[11px] uppercase tracking-wide">BTC</p>
+          <p className="text-tg-text font-mono font-medium">
+            {btcDominance.toFixed(1)}%
+          </p>
+        </div>
       </div>
-      <p className={cn(
-        'text-label font-semibold font-mono',
-        change !== undefined ? getPriceChangeColor(change) : 'text-tg-text'
-      )}>
-        {value}
-      </p>
     </div>
   )
 }

@@ -2,32 +2,20 @@ import { Skeleton } from '@/components/ui/Skeleton'
 
 export function MarketCoinSkeleton() {
   return (
-    <div className="bg-surface rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <Skeleton variant="text" className="w-6 h-4" />
-          <Skeleton variant="circular" className="w-8 h-8" />
-          <div className="space-y-2">
-            <Skeleton variant="text" className="w-16 h-4" />
-            <Skeleton variant="text" className="w-24 h-3" />
-          </div>
-        </div>
-        <Skeleton className="w-8 h-8 rounded-md" />
-      </div>
-      <div className="flex items-end justify-between">
-        <div className="space-y-2">
-          <Skeleton variant="text" className="w-24 h-4" />
-          <Skeleton variant="text" className="w-16 h-3" />
-        </div>
-        <Skeleton className="w-20 h-8" />
-      </div>
+    <div className="flex items-center gap-3 py-3 px-4 bg-surface border-b border-border-subtle">
+      <Skeleton variant="text" className="w-8 h-4" />
+      <Skeleton variant="circular" className="w-6 h-6" />
+      <Skeleton variant="text" className="w-16 h-4 flex-1" />
+      <Skeleton className="w-16 h-6" />
+      <Skeleton className="w-12 h-4" />
+      <Skeleton className="w-7 h-7 rounded-md" />
     </div>
   )
 }
 
 export function MarketSkeletonList({ count = 10 }: { count?: number }) {
   return (
-    <div className="space-y-2">
+    <div className="bg-surface rounded-lg overflow-hidden">
       {Array.from({ length: count }).map((_, i) => (
         <MarketCoinSkeleton key={i} />
       ))}
@@ -37,18 +25,25 @@ export function MarketSkeletonList({ count = 10 }: { count?: number }) {
 
 export function MarketOverviewSkeleton() {
   return (
-    <div className="bg-surface rounded-lg p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <Skeleton variant="text" className="w-32 h-6" />
-        <Skeleton variant="circular" className="w-5 h-5" />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-surface-elevated rounded-lg p-3">
-            <Skeleton variant="text" className="w-20 h-3 mb-2" />
-            <Skeleton variant="text" className="w-24 h-4" />
-          </div>
-        ))}
+    <div className="bg-surface rounded-lg px-4 py-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <Skeleton variant="text" className="w-8 h-3 mb-1" />
+          <Skeleton variant="text" className="w-20 h-4" />
+        </div>
+        <div className="flex-shrink-0">
+          <Skeleton variant="text" className="w-8 h-3 mb-1" />
+          <Skeleton variant="text" className="w-16 h-4" />
+        </div>
+        <div className="w-px h-8 bg-border-subtle" />
+        <div className="flex-1">
+          <Skeleton variant="text" className="w-8 h-3 mb-1" />
+          <Skeleton variant="text" className="w-20 h-4" />
+        </div>
+        <div className="flex-shrink-0">
+          <Skeleton variant="text" className="w-8 h-3 mb-1" />
+          <Skeleton variant="text" className="w-12 h-4" />
+        </div>
       </div>
     </div>
   )
@@ -56,12 +51,16 @@ export function MarketOverviewSkeleton() {
 
 export function FearGreedSkeleton() {
   return (
-    <div className="bg-surface rounded-lg p-4">
-      <Skeleton variant="text" className="w-32 h-4 mx-auto mb-4" />
-      <Skeleton className="w-48 h-24 mx-auto mb-4" />
-      <div className="text-center space-y-2">
-        <Skeleton variant="text" className="w-16 h-8 mx-auto" />
-        <Skeleton variant="text" className="w-24 h-3 mx-auto" />
+    <div className="bg-surface rounded-lg px-4 py-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1">
+          <Skeleton variant="text" className="w-20 h-3 mb-1" />
+          <Skeleton variant="text" className="w-24 h-4" />
+        </div>
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-24 h-1.5 rounded-full" />
+          <Skeleton variant="text" className="w-10 h-5" />
+        </div>
       </div>
     </div>
   )

@@ -3,7 +3,6 @@ import { RefreshCw } from 'lucide-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { PageHeader } from '@/components/common/PageHeader'
 import { Tabs, type Tab } from '@/components/ui/Tabs'
-import { Button } from '@/components/ui/Button'
 import {
   MarketOverviewCard,
   FearGreedGauge,
@@ -140,7 +139,7 @@ export default function MarketPage() {
   const virtualizer = useVirtualizer({
     count: sortedCoins.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 72, // Estimated height of MarketCoinCard
+    estimateSize: () => 56, // Estimated height of compact MarketCoinCard row
     overscan: 5, // Render 5 items above and below viewport
   })
 
@@ -168,9 +167,9 @@ export default function MarketPage() {
     <div className="min-h-screen pb-20">
       <PageHeader title="Market" />
 
-      <div className="px-4 py-3 space-y-4">
+      <div className="px-4 py-3 space-y-3">
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-2">
           {isLoadingOverview ? (
             <>
               <MarketOverviewSkeleton />
@@ -195,7 +194,7 @@ export default function MarketPage() {
         />
 
         {/* Filters */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex-1 overflow-hidden">
             <MarketFilters
               sortField={sortField}
@@ -203,17 +202,16 @@ export default function MarketPage() {
               onSortChange={setSorting}
             />
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={handleRefresh}
             disabled={isLoading}
+            className="flex-shrink-0 w-8 h-8 rounded-md bg-surface-elevated flex items-center justify-center text-tg-hint touch-feedback transition-colors duration-150"
           >
             <RefreshCw
               size={16}
               className={isLoading ? 'animate-spin' : ''}
             />
-          </Button>
+          </button>
         </div>
 
         {/* Coins List */}
@@ -224,53 +222,55 @@ export default function MarketPage() {
             <p className="text-body text-tg-hint">No coins found</p>
           </div>
         ) : (
-          <div
-            ref={parentRef}
-            className="overflow-auto"
-            style={{
-              height: 'calc(100vh - 480px)', // Adjust based on header + overview + filters
-              minHeight: '400px',
-            }}
-          >
+          <div className="bg-surface rounded-lg overflow-hidden">
             <div
+              ref={parentRef}
+              className="overflow-auto"
               style={{
-                height: `${virtualizer.getTotalSize()}px`,
-                width: '100%',
-                position: 'relative',
+                height: 'calc(100vh - 380px)', // Adjust based on header + compact overview + filters
+                minHeight: '400px',
               }}
             >
-              {virtualizer.getVirtualItems().map((virtualItem) => {
-                const coin = sortedCoins[virtualItem.index]
-                if (!coin) return null
+              <div
+                style={{
+                  height: `${virtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {virtualizer.getVirtualItems().map((virtualItem) => {
+                  const coin = sortedCoins[virtualItem.index]
+                  if (!coin) return null
 
-                return (
-                  <div
-                    key={coin.id}
-                    data-index={virtualItem.index}
-                    ref={virtualizer.measureElement}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      transform: `translateY(${virtualItem.start}px)`,
-                    }}
-                  >
-                    <MarketCoinCard
-                      coin={coin}
-                      isInWatchlist={isInWatchlist(coin.symbol)}
-                      onToggleWatchlist={() => handleToggleWatchlist(coin)}
-                      sparklineData={getSparklineData(coin.binanceSymbol)}
-                      disabled={!canAddMore && !isInWatchlist(coin.symbol)}
-                    />
-                  </div>
-                )
-              })}
+                  return (
+                    <div
+                      key={coin.id}
+                      data-index={virtualItem.index}
+                      ref={virtualizer.measureElement}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualItem.start}px)`,
+                      }}
+                    >
+                      <MarketCoinCard
+                        coin={coin}
+                        isInWatchlist={isInWatchlist(coin.symbol)}
+                        onToggleWatchlist={() => handleToggleWatchlist(coin)}
+                        sparklineData={getSparklineData(coin.binanceSymbol)}
+                        disabled={!canAddMore && !isInWatchlist(coin.symbol)}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             {/* End of list indicator */}
             {sortedCoins.length > 20 && (
-              <div className="py-8 text-center">
+              <div className="py-3 text-center border-t border-border-subtle">
                 <p className="text-body-sm text-tg-hint">
                   {sortedCoins.length} coins
                 </p>

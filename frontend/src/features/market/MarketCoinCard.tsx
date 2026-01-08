@@ -1,9 +1,7 @@
 import { memo, useCallback } from 'react'
-import { motion } from 'framer-motion'
 import { Plus, Check } from 'lucide-react'
 import { CoinLogo } from '@/components/common/CoinLogo'
 import { Sparkline } from '@/components/common/Sparkline'
-import { Button } from '@/components/ui/Button'
 import { cn, formatPrice, formatPercentage, getPriceChangeColor } from '@/lib/utils'
 import { useTelegram } from '@/hooks/useTelegram'
 import type { Coin } from '@/types'
@@ -35,78 +33,75 @@ function MarketCoinCardComponent({
   }, [disabled, hapticFeedback, onToggleWatchlist])
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+    <div
       className={cn(
-        'bg-surface rounded-lg p-4',
+        'flex items-center gap-3 py-3 px-4 bg-surface border-b border-border-subtle last:border-b-0',
+        'transition-colors duration-150',
         disabled && 'opacity-50'
       )}
     >
-      <div className="flex items-center justify-between mb-3">
-        {/* Left: Coin info */}
-        <div className="flex items-center gap-3">
-          {coin.rank && (
-            <span className="text-body-sm text-tg-hint font-mono w-6 text-right">
-              {coin.rank}
-            </span>
-          )}
-          <CoinLogo symbol={coin.symbol} name={coin.name} size="sm" />
-          <div>
-            <p className="text-label font-semibold text-tg-text">
-              {coin.symbol}
-            </p>
-            <p className="text-body-sm text-tg-hint">
-              {coin.name}
-            </p>
-          </div>
-        </div>
+      {/* Rank */}
+      {coin.rank && (
+        <span className="text-body-sm text-tg-hint font-mono w-8 text-right flex-shrink-0">
+          {coin.rank}
+        </span>
+      )}
 
-        {/* Right: Add button */}
-        <Button
-          variant={isInWatchlist ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={handleToggle}
-          disabled={disabled}
-          className={cn(
-            'flex-shrink-0',
-            isInWatchlist && 'bg-success/20 text-success hover:bg-success/30'
-          )}
-        >
-          {isInWatchlist ? (
-            <Check size={16} />
-          ) : (
-            <Plus size={16} />
-          )}
-        </Button>
+      {/* Logo + Name */}
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <CoinLogo symbol={coin.symbol} name={coin.name} size="sm" />
+        <div className="min-w-0">
+          <p className="text-body font-medium text-tg-text truncate">
+            {coin.symbol}
+          </p>
+        </div>
       </div>
 
-      {/* Bottom: Price, change, sparkline */}
-      <div className="flex items-end justify-between">
-        <div className="flex-1">
-          <p className="text-label font-mono font-semibold text-tg-text mb-1">
-            {formatPrice(coin.currentPrice ?? 0)}
-          </p>
-          <p className={cn(
-            'text-body-sm font-mono font-medium',
-            getPriceChangeColor(coin.priceChange24hPct ?? 0)
-          )}>
-            {formatPercentage(coin.priceChange24hPct ?? 0)}
-          </p>
-        </div>
-
-        {sparklineData.length > 0 && (
+      {/* Sparkline - hidden on small screens */}
+      {sparklineData.length > 0 && (
+        <div className="hidden xs:block flex-shrink-0">
           <Sparkline
             data={sparklineData}
-            width={80}
-            height={32}
-            className="opacity-80"
+            width={60}
+            height={24}
+            className="opacity-60"
           />
-        )}
+        </div>
+      )}
+
+      {/* Price + Change */}
+      <div className="text-right flex-shrink-0 min-w-[5rem]">
+        <p className="text-body-sm font-mono font-medium text-tg-text">
+          {formatPrice(coin.currentPrice ?? 0)}
+        </p>
+        <p className={cn(
+          'text-[11px] font-mono font-medium',
+          getPriceChangeColor(coin.priceChange24hPct ?? 0)
+        )}>
+          {formatPercentage(coin.priceChange24hPct ?? 0)}
+        </p>
       </div>
-    </motion.div>
+
+      {/* Action button */}
+      <button
+        onClick={handleToggle}
+        disabled={disabled}
+        className={cn(
+          'flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center',
+          'transition-colors duration-150 touch-feedback',
+          isInWatchlist
+            ? 'bg-success/20 text-success'
+            : 'bg-surface-elevated text-tg-hint hover:bg-surface-hover',
+          disabled && 'cursor-not-allowed'
+        )}
+      >
+        {isInWatchlist ? (
+          <Check size={14} />
+        ) : (
+          <Plus size={14} />
+        )}
+      </button>
+    </div>
   )
 }
 

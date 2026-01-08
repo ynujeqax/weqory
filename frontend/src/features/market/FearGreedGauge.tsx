@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
 
 interface FearGreedGaugeProps {
   value: number
@@ -7,11 +7,6 @@ interface FearGreedGaugeProps {
 }
 
 export function FearGreedGauge({ value, classification }: FearGreedGaugeProps) {
-  // Map value (0-100) to rotation (-90 to 90 degrees)
-  const rotation = useMemo(() => {
-    return (value / 100) * 180 - 90
-  }, [value])
-
   // Get color based on value
   const color = useMemo(() => {
     if (value < 25) return '#FF453A' // Extreme Fear
@@ -21,75 +16,42 @@ export function FearGreedGauge({ value, classification }: FearGreedGaugeProps) {
     return '#30D158' // Extreme Greed
   }, [value])
 
+  const colorClass = useMemo(() => {
+    if (value < 25) return 'text-crypto-down'
+    if (value < 45) return 'text-warning'
+    if (value < 55) return 'text-crypto-neutral'
+    return 'text-crypto-up'
+  }, [value])
+
   return (
-    <div className="bg-surface rounded-lg p-4">
-      {/* Title */}
-      <h3 className="text-label text-tg-hint mb-4 text-center">
-        Fear & Greed Index
-      </h3>
+    <div className="bg-surface rounded-lg px-4 py-3">
+      <div className="flex items-center justify-between gap-4">
+        {/* Label */}
+        <div className="flex-1">
+          <p className="text-tg-hint text-[11px] uppercase tracking-wide mb-0.5">
+            Fear & Greed
+          </p>
+          <p className="text-body-sm text-tg-text">{classification}</p>
+        </div>
 
-      {/* Gauge */}
-      <div className="relative w-48 h-24 mx-auto">
-        {/* Background arc */}
-        <svg className="w-full h-full" viewBox="0 0 200 100">
-          <defs>
-            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#FF453A" />
-              <stop offset="25%" stopColor="#FFD60A" />
-              <stop offset="50%" stopColor="#8E8E93" />
-              <stop offset="75%" stopColor="#30D158" />
-              <stop offset="100%" stopColor="#30D158" />
-            </linearGradient>
-          </defs>
+        {/* Value with progress bar */}
+        <div className="flex items-center gap-3">
+          {/* Compact horizontal bar */}
+          <div className="relative w-24 h-1.5 bg-surface-elevated rounded-full overflow-hidden">
+            <div
+              className={cn('absolute left-0 top-0 h-full rounded-full transition-all duration-500')}
+              style={{
+                width: `${value}%`,
+                backgroundColor: color
+              }}
+            />
+          </div>
 
-          {/* Background arc */}
-          <path
-            d="M 20 90 A 80 80 0 0 1 180 90"
-            fill="none"
-            stroke="url(#gaugeGradient)"
-            strokeWidth="12"
-            strokeLinecap="round"
-            opacity="0.3"
-          />
-
-          {/* Active arc */}
-          <motion.path
-            d="M 20 90 A 80 80 0 0 1 180 90"
-            fill="none"
-            stroke={color}
-            strokeWidth="12"
-            strokeLinecap="round"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: value / 100 }}
-            transition={{ duration: 1, ease: 'easeOut' }}
-          />
-        </svg>
-
-        {/* Needle */}
-        <motion.div
-          className="absolute top-[70px] left-1/2 -ml-1 origin-bottom"
-          style={{ height: '60px' }}
-          initial={{ rotate: -90 }}
-          animate={{ rotate: rotation }}
-          transition={{ duration: 1, ease: 'easeOut' }}
-        >
-          <div className="w-1 h-full bg-white rounded-full shadow-lg" />
-          <div className="absolute bottom-0 left-1/2 -ml-2 w-4 h-4 rounded-full bg-white shadow-lg" />
-        </motion.div>
-      </div>
-
-      {/* Value and classification */}
-      <div className="text-center mt-4">
-        <motion.p
-          key={value}
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-[32px] leading-tight font-bold text-tg-text mb-1"
-          style={{ color }}
-        >
-          {value}
-        </motion.p>
-        <p className="text-body text-tg-hint">{classification}</p>
+          {/* Value */}
+          <p className={cn('font-mono font-semibold text-label-lg min-w-[2.5rem] text-right', colorClass)}>
+            {value}
+          </p>
+        </div>
       </div>
     </div>
   )
