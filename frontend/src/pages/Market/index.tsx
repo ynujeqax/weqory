@@ -6,20 +6,19 @@ import {
   FearGreedGauge,
   GainersLosersTable,
 } from '@/features/market'
-import { useMarketOverview, useAvailableCoins } from '@/api/hooks'
+import { useMarketOverview } from '@/api/hooks'
 
 export default function MarketPage() {
-  // Data fetching
-  const { data: marketOverview, isLoading: isLoadingOverview } = useMarketOverview()
-  const { data: allCoins, isLoading: isLoadingCoins } = useAvailableCoins(undefined, 1000)
+  // Data fetching - use market overview which includes top_coins with price data
+  const { data: marketOverview, isLoading } = useMarketOverview()
 
-  // Filter out coins without price change data for gainers/losers
+  // Use top_coins from market overview for gainers/losers (they have price change data)
   const validCoins = useMemo(() => {
-    if (!allCoins) return []
-    return allCoins.coins.filter(coin => coin.priceChange24hPct !== undefined && coin.priceChange24hPct !== null)
-  }, [allCoins])
-
-  const isLoading = isLoadingOverview || isLoadingCoins
+    if (!marketOverview?.top_coins) return []
+    return marketOverview.top_coins.filter(
+      coin => coin.priceChange24hPct !== undefined && coin.priceChange24hPct !== null
+    )
+  }, [marketOverview?.top_coins])
 
   // Show loading skeleton
   if (isLoading) {

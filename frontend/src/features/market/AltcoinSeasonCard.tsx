@@ -9,11 +9,14 @@ interface AltcoinSeasonCardProps {
 export function AltcoinSeasonCard({ btcDominance }: AltcoinSeasonCardProps) {
   // Derive altcoin season index from BTC dominance
   // Formula: Higher BTC dominance = Bitcoin season (lower index)
-  // BTC dominance typically ranges from 40% to 70%
-  // Map: 70% dominance = 0 index, 40% dominance = 100 index
+  // BTC dominance typically ranges from 35% to 75%
+  // Map: 75% dominance = 0 index, 35% dominance = 100 index
   const altcoinSeasonIndex = useMemo(() => {
+    if (!btcDominance || btcDominance <= 0) return 50 // Default to neutral
     // Inverse relationship: high BTC dominance = low index (Bitcoin season)
-    const normalized = Math.max(0, Math.min(100, ((70 - btcDominance) / 30) * 100))
+    // Clamp btcDominance between 35 and 75 for calculation
+    const clampedDominance = Math.max(35, Math.min(75, btcDominance))
+    const normalized = ((75 - clampedDominance) / 40) * 100
     return Math.round(normalized)
   }, [btcDominance])
 
