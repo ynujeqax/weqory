@@ -20,6 +20,12 @@ export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
   const handleLanguageChange = (lang: SupportedLanguage) => {
     hapticFeedback('light')
     i18n.changeLanguage(lang)
+    // Save to localStorage for persistence
+    try {
+      localStorage.setItem('weqory_language', lang)
+    } catch {
+      // Ignore localStorage errors
+    }
     setIsOpen(false)
   }
 

@@ -1,6 +1,5 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
 
 import en from '@/locales/en.json'
 import uk from '@/locales/uk.json'
@@ -21,8 +20,27 @@ export const languageFlags: Record<SupportedLanguage, string> = {
   ru: '🇷🇺',
 }
 
+// Safely detect language
+function detectLanguage(): string {
+  try {
+    // Try localStorage first
+    const stored = localStorage.getItem('weqory_language')
+    if (stored && ['en', 'uk', 'ru'].includes(stored)) {
+      return stored
+    }
+    // Try navigator language
+    const navLang = navigator.language?.slice(0, 2)
+    if (navLang && ['en', 'uk', 'ru'].includes(navLang)) {
+      return navLang
+    }
+  } catch {
+    // Ignore errors (e.g., localStorage not available)
+  }
+  return 'en'
+}
+
+// Initialize i18n
 i18n
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources: {
@@ -30,15 +48,14 @@ i18n
       uk: { translation: uk },
       ru: { translation: ru },
     },
+    lng: detectLanguage(),
     fallbackLng: 'en',
-    supportedLngs: supportedLanguages,
+    supportedLngs: ['en', 'uk', 'ru'],
     interpolation: {
       escapeValue: false, // React already escapes values
     },
-    detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
-      lookupLocalStorage: 'weqory_language',
+    react: {
+      useSuspense: false, // Disable suspense to prevent loading issues
     },
   })
 
