@@ -1,7 +1,8 @@
 import { create } from 'zustand'
-import type { SortField, SortDirection } from '@/features/market'
 
 export type MarketTab = 'all' | 'top100' | 'defi' | 'layer1'
+export type SortField = 'rank' | 'price' | 'change24h' | 'volume' | 'marketCap'
+export type SortDirection = 'asc' | 'desc'
 
 interface MarketState {
   // Filters
