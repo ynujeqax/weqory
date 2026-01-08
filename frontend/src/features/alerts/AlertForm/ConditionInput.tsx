@@ -99,14 +99,13 @@ export function ConditionInput({
     )
   }
 
-  // Percentage change alerts (price or volume)
-  if (alertType === 'PRICE_CHANGE_PCT' || alertType === 'VOLUME_CHANGE_PCT') {
-    const isVolume = alertType === 'VOLUME_CHANGE_PCT'
+  // Percentage change alerts
+  if (alertType === 'PRICE_CHANGE_PCT') {
     return (
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-tg-text mb-2">
-            {isVolume ? 'Volume Change' : 'Price Change'} Percentage
+            Change Percentage
           </label>
           <Input
             type="number"
@@ -118,7 +117,7 @@ export function ConditionInput({
             error={error}
           />
           <p className="text-xs text-tg-hint mt-1">
-            Triggers on {isVolume ? 'volume' : 'price'} change in either direction (up or down)
+            Triggers on price change in either direction (up or down)
           </p>
         </div>
 
@@ -137,41 +136,8 @@ export function ConditionInput({
         {conditionValue && conditionTimeframe && !error && (
           <div className="p-4 rounded-xl bg-surface-elevated">
             <p className="text-sm text-tg-hint">
-              Alert when {isVolume ? 'volume' : 'price'} changes by {conditionValue}% or more within{' '}
+              Alert when price changes by {conditionValue}% or more (up or down) within{' '}
               {TIMEFRAMES.find((t) => t.value === conditionTimeframe)?.label}
-            </p>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  // Volume spike alert
-  if (alertType === 'VOLUME_SPIKE') {
-    return (
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-tg-text mb-2">
-            Spike Threshold (% of average)
-          </label>
-          <Input
-            type="number"
-            value={conditionValue}
-            onChange={(e) => handleValueChange(e.target.value)}
-            placeholder="e.g., 200"
-            step="10"
-            min="100"
-            error={error}
-          />
-          <p className="text-xs text-tg-hint mt-1">
-            E.g., 200 means alert when volume is 2x the 7-day average
-          </p>
-        </div>
-
-        {conditionValue && !error && (
-          <div className="p-4 rounded-xl bg-surface-elevated">
-            <p className="text-sm text-tg-hint">
-              Alert when {selectedCoin.symbol} trading volume exceeds {conditionValue}% of the 7-day average
             </p>
           </div>
         )}

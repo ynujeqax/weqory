@@ -31,12 +31,6 @@ export {
   type PriceUpdate,
   type WebSocketMessage,
 } from './websocket'
-export {
-  paymentsApi,
-  type Plan,
-  type Payment,
-  type CreateInvoiceRequest,
-} from './payments'
 
 // Re-export hooks
 export {
@@ -56,7 +50,4 @@ export {
   useDeleteAlert,
   useHistory,
   useMarketOverview,
-  usePlans,
-  usePaymentHistory,
-  useCreateInvoice,
 } from './hooks'

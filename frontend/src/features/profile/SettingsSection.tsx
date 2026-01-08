@@ -1,9 +1,7 @@
 import { motion } from 'framer-motion'
-import { Bell, Vibrate, Download, Globe } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
+import { Bell, Vibrate, Download } from 'lucide-react'
 import { Toggle } from '@/components/ui/Toggle'
 import { Button } from '@/components/ui/Button'
-import { LanguageSwitcher } from '@/components/common'
 import { usePWA } from '@/hooks/usePWA'
 import type { User } from '@/types'
 
@@ -18,7 +16,6 @@ export function SettingsSection({
   onNotificationsChange,
   onVibrationChange,
 }: SettingsSectionProps) {
-  const { t } = useTranslation()
   const { isInstallable, install } = usePWA()
 
   return (
@@ -28,7 +25,7 @@ export function SettingsSection({
       transition={{ delay: 0.2 }}
       className="bg-surface rounded-lg p-4 space-y-4"
     >
-      <h3 className="text-label font-semibold text-tg-text">{t('profile.settings.title')}</h3>
+      <h3 className="text-label font-semibold text-tg-text">Settings</h3>
 
       <div className="space-y-4">
         {/* Notifications */}
@@ -37,8 +34,8 @@ export function SettingsSection({
           <Toggle
             checked={user.notificationsEnabled}
             onChange={onNotificationsChange}
-            label={t('profile.settings.notifications')}
-            description={t('profile.settings.notificationsHint')}
+            label="Notifications"
+            description="Receive alerts via Telegram"
           />
         </div>
 
@@ -48,15 +45,9 @@ export function SettingsSection({
           <Toggle
             checked={user.vibrationEnabled}
             onChange={onVibrationChange}
-            label={t('profile.settings.vibration')}
-            description={t('profile.settings.vibrationHint')}
+            label="Haptic Feedback"
+            description="Vibration on interactions"
           />
-        </div>
-
-        {/* Language */}
-        <div className="flex items-start gap-3">
-          <Globe size={20} className="text-tg-hint mt-0.5" />
-          <LanguageSwitcher />
         </div>
 
         {/* PWA Install */}
