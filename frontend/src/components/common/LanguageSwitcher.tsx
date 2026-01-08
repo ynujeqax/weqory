@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { hapticFeedback } from '@telegram-apps/sdk'
+import { useTelegram } from '@/hooks/useTelegram'
 import { supportedLanguages, languageNames, languageFlags, type SupportedLanguage } from '@/lib/i18n'
 
 interface LanguageSwitcherProps {
@@ -11,19 +11,20 @@ interface LanguageSwitcherProps {
 
 export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
   const { i18n, t } = useTranslation()
+  const { hapticFeedback } = useTelegram()
   const [isOpen, setIsOpen] = useState(false)
 
   const currentLanguage = (i18n.language?.slice(0, 2) || 'en') as SupportedLanguage
   const validLanguage = supportedLanguages.includes(currentLanguage) ? currentLanguage : 'en'
 
   const handleLanguageChange = (lang: SupportedLanguage) => {
-    hapticFeedback.impactOccurred('light')
+    hapticFeedback('light')
     i18n.changeLanguage(lang)
     setIsOpen(false)
   }
 
   const handleToggle = () => {
-    hapticFeedback.impactOccurred('light')
+    hapticFeedback('light')
     setIsOpen(!isOpen)
   }
 
