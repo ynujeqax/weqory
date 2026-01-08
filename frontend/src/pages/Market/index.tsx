@@ -1,35 +1,26 @@
 import { useMemo, useCallback, useRef } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { motion } from 'framer-motion'
 import { PageHeader } from '@/components/common/PageHeader'
 import { Tabs, type Tab } from '@/components/ui/Tabs'
 import {
-  MarketOverviewCard,
+  TopCoinsCarousel,
   FearGreedGauge,
+  MarketStatsCard,
+  DominanceBar,
   MarketCoinCard,
   MarketFilters,
   MarketSkeletonList,
-  MarketOverviewSkeleton,
+  TopCoinsCarouselSkeleton,
   FearGreedSkeleton,
+  MarketStatsSkeleton,
+  DominanceBarSkeleton,
 } from '@/features/market'
 import { useMarketOverview, useAvailableCoins, useWatchlist, useAddToWatchlist, useUser } from '@/api/hooks'
 import { useMarketStore } from '@/stores/marketStore'
 import { usePricesStore } from '@/stores/pricesStore'
-import type { Coin, MarketOverview } from '@/types'
-import type { MarketOverviewResponse } from '@/api/market'
-
-// Adapter function to convert API response to UI type
-function mapMarketOverview(response: MarketOverviewResponse): MarketOverview {
-  return {
-    totalMarketCap: response.total_market_cap,
-    totalVolume24h: response.total_volume_24h,
-    btcDominance: response.btc_dominance,
-    ethDominance: response.eth_dominance,
-    marketCapChange24hPct: response.market_cap_change_24h_pct,
-    fearGreedIndex: response.fear_greed_index,
-    topCoins: response.top_coins,
-  }
-}
+import type { Coin } from '@/types'
 
 const tabs: Tab[] = [
   { id: 'all', label: 'All' },
@@ -164,120 +155,167 @@ export default function MarketPage() {
   const isLoading = isLoadingOverview || isLoadingCoins
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-20 bg-bg-primary">
       <PageHeader title="Market" />
 
-      <div className="px-4 py-3 space-y-3">
-        {/* Overview Cards */}
-        <div className="space-y-2">
+      <div className="space-y-4">
+        {/* Top Coins Carousel */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="pt-3"
+        >
           {isLoadingOverview ? (
-            <>
-              <MarketOverviewSkeleton />
-              <FearGreedSkeleton />
-            </>
-          ) : marketOverview ? (
-            <>
-              <MarketOverviewCard data={mapMarketOverview(marketOverview)} />
-              <FearGreedGauge
-                value={marketOverview.fear_greed_index.value}
-                classification={marketOverview.fear_greed_index.classification}
-              />
-            </>
+            <TopCoinsCarouselSkeleton />
+          ) : marketOverview?.top_coins && marketOverview.top_coins.length > 0 ? (
+            <TopCoinsCarousel coins={marketOverview.top_coins} />
           ) : null}
-        </div>
+        </motion.div>
 
-        {/* Tabs */}
-        <Tabs
-          tabs={tabs}
-          activeTab={activeTab}
-          onChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
-        />
-
-        {/* Filters */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex-1 overflow-hidden">
-            <MarketFilters
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSortChange={setSorting}
-            />
-          </div>
-          <button
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="flex-shrink-0 w-8 h-8 rounded-md bg-surface-elevated flex items-center justify-center text-tg-hint touch-feedback transition-colors duration-150"
+        <div className="px-4 space-y-3">
+          {/* Market Stats Grid - Fear & Greed + Market Stats side by side on wider screens */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
           >
-            <RefreshCw
-              size={16}
-              className={isLoading ? 'animate-spin' : ''}
-            />
-          </button>
-        </div>
+            {isLoadingOverview ? (
+              <>
+                <FearGreedSkeleton />
+                <MarketStatsSkeleton />
+              </>
+            ) : marketOverview ? (
+              <>
+                <FearGreedGauge
+                  value={marketOverview.fear_greed_index.value}
+                  classification={marketOverview.fear_greed_index.classification}
+                />
+                <MarketStatsCard
+                  marketCap={marketOverview.total_market_cap}
+                  volume24h={marketOverview.total_volume_24h}
+                  marketCapChange24hPct={marketOverview.market_cap_change_24h_pct}
+                />
+              </>
+            ) : null}
+          </motion.div>
 
-        {/* Coins List */}
-        {isLoadingCoins ? (
-          <MarketSkeletonList count={10} />
-        ) : sortedCoins.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-body text-tg-hint">No coins found</p>
-          </div>
-        ) : (
-          <div className="bg-surface rounded-lg overflow-hidden">
-            <div
-              ref={parentRef}
-              className="overflow-auto"
-              style={{
-                height: 'calc(100vh - 380px)', // Adjust based on header + compact overview + filters
-                minHeight: '400px',
-              }}
+          {/* Bitcoin Dominance Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            {isLoadingOverview ? (
+              <DominanceBarSkeleton />
+            ) : marketOverview ? (
+              <DominanceBar
+                btcDominance={marketOverview.btc_dominance}
+                ethDominance={marketOverview.eth_dominance}
+              />
+            ) : null}
+          </motion.div>
+
+          {/* Tabs */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+          >
+            <Tabs
+              tabs={tabs}
+              activeTab={activeTab}
+              onChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
+            />
+          </motion.div>
+
+          {/* Filters */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1 overflow-hidden">
+              <MarketFilters
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSortChange={setSorting}
+              />
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="flex-shrink-0 w-8 h-8 rounded-md bg-surface-elevated flex items-center justify-center text-tg-hint touch-feedback transition-colors duration-150"
             >
+              <RefreshCw
+                size={16}
+                className={isLoading ? 'animate-spin' : ''}
+              />
+            </button>
+          </div>
+
+          {/* Coins List */}
+          {isLoadingCoins ? (
+            <MarketSkeletonList count={10} />
+          ) : sortedCoins.length === 0 ? (
+            <div className="py-16 text-center">
+              <p className="text-body text-tg-hint">No coins found</p>
+            </div>
+          ) : (
+            <div className="bg-surface rounded-lg overflow-hidden border border-border-subtle">
               <div
+                ref={parentRef}
+                className="overflow-auto"
                 style={{
-                  height: `${virtualizer.getTotalSize()}px`,
-                  width: '100%',
-                  position: 'relative',
+                  height: 'calc(100vh - 540px)', // Adjusted for new layout height
+                  minHeight: '300px',
                 }}
               >
-                {virtualizer.getVirtualItems().map((virtualItem) => {
-                  const coin = sortedCoins[virtualItem.index]
-                  if (!coin) return null
+                <div
+                  style={{
+                    height: `${virtualizer.getTotalSize()}px`,
+                    width: '100%',
+                    position: 'relative',
+                  }}
+                >
+                  {virtualizer.getVirtualItems().map((virtualItem) => {
+                    const coin = sortedCoins[virtualItem.index]
+                    if (!coin) return null
 
-                  return (
-                    <div
-                      key={coin.id}
-                      data-index={virtualItem.index}
-                      ref={virtualizer.measureElement}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        transform: `translateY(${virtualItem.start}px)`,
-                      }}
-                    >
-                      <MarketCoinCard
-                        coin={coin}
-                        isInWatchlist={isInWatchlist(coin.symbol)}
-                        onToggleWatchlist={() => handleToggleWatchlist(coin)}
-                        sparklineData={getSparklineData(coin.binanceSymbol)}
-                        disabled={!canAddMore && !isInWatchlist(coin.symbol)}
-                      />
-                    </div>
-                  )
-                })}
+                    return (
+                      <div
+                        key={coin.id}
+                        data-index={virtualItem.index}
+                        ref={virtualizer.measureElement}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          transform: `translateY(${virtualItem.start}px)`,
+                        }}
+                      >
+                        <MarketCoinCard
+                          coin={coin}
+                          isInWatchlist={isInWatchlist(coin.symbol)}
+                          onToggleWatchlist={() => handleToggleWatchlist(coin)}
+                          sparklineData={getSparklineData(coin.binanceSymbol)}
+                          disabled={!canAddMore && !isInWatchlist(coin.symbol)}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
+
+              {/* End of list indicator */}
+              {sortedCoins.length > 20 && (
+                <div className="py-3 text-center border-t border-border-subtle">
+                  <p className="text-body-sm text-tg-hint">
+                    {sortedCoins.length} coins
+                  </p>
+                </div>
+              )}
             </div>
-
-            {/* End of list indicator */}
-            {sortedCoins.length > 20 && (
-              <div className="py-3 text-center border-t border-border-subtle">
-                <p className="text-body-sm text-tg-hint">
-                  {sortedCoins.length} coins
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )

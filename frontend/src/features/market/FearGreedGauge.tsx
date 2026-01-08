@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface FearGreedGaugeProps {
@@ -23,35 +24,83 @@ export function FearGreedGauge({ value, classification }: FearGreedGaugeProps) {
     return 'text-crypto-up'
   }, [value])
 
-  return (
-    <div className="bg-surface rounded-lg px-4 py-3">
-      <div className="flex items-center justify-between gap-4">
-        {/* Label */}
-        <div className="flex-1">
-          <p className="text-tg-hint text-[11px] uppercase tracking-wide mb-0.5">
-            Fear & Greed
-          </p>
-          <p className="text-body-sm text-tg-text">{classification}</p>
-        </div>
+  // Calculate arc position (0-100 maps to 0-180 degrees)
+  const rotation = (value / 100) * 180 - 90 // -90 to 90 degrees
 
-        {/* Value with progress bar */}
-        <div className="flex items-center gap-3">
-          {/* Compact horizontal bar */}
-          <div className="relative w-24 h-1.5 bg-surface-elevated rounded-full overflow-hidden">
-            <div
-              className={cn('absolute left-0 top-0 h-full rounded-full transition-all duration-500')}
+  return (
+    <div className="bg-surface rounded-xl px-4 py-4 border border-border-subtle">
+      <div className="flex flex-col items-center">
+        {/* Label */}
+        <p className="text-tg-hint text-[11px] uppercase tracking-wide mb-3">
+          Fear & Greed Index
+        </p>
+
+        {/* Semi-circular gauge */}
+        <div className="relative w-36 h-20 mb-2">
+          {/* Background arc (gradient) */}
+          <svg className="absolute inset-0" viewBox="0 0 144 80" fill="none">
+            <defs>
+              <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FF453A" />
+                <stop offset="25%" stopColor="#FFD60A" />
+                <stop offset="50%" stopColor="#8E8E93" />
+                <stop offset="75%" stopColor="#30D158" />
+                <stop offset="100%" stopColor="#30D158" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M 12 72 A 60 60 0 0 1 132 72"
+              stroke="url(#gaugeGradient)"
+              strokeWidth="8"
+              strokeLinecap="round"
+              fill="none"
+              opacity="0.3"
+            />
+          </svg>
+
+          {/* Active arc */}
+          <svg className="absolute inset-0" viewBox="0 0 144 80" fill="none">
+            <motion.path
+              d="M 12 72 A 60 60 0 0 1 132 72"
+              stroke={color}
+              strokeWidth="8"
+              strokeLinecap="round"
+              fill="none"
+              strokeDasharray="188.5"
+              initial={{ strokeDashoffset: 188.5 }}
+              animate={{ strokeDashoffset: 188.5 - (value / 100) * 188.5 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            />
+          </svg>
+
+          {/* Needle */}
+          <div className="absolute inset-0 flex items-end justify-center pb-2">
+            <motion.div
+              className="w-1 h-12 origin-bottom"
               style={{
-                width: `${value}%`,
-                backgroundColor: color
+                background: `linear-gradient(to top, ${color}, transparent)`,
               }}
+              initial={{ rotate: -90 }}
+              animate={{ rotate: rotation }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
             />
           </div>
 
-          {/* Value */}
-          <p className={cn('font-mono font-semibold text-label-lg min-w-[2.5rem] text-right', colorClass)}>
-            {value}
-          </p>
+          {/* Center value */}
+          <div className="absolute inset-0 flex items-end justify-center pb-1">
+            <motion.p
+              className={cn('font-mono font-bold text-3xl', colorClass)}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              {value}
+            </motion.p>
+          </div>
         </div>
+
+        {/* Classification */}
+        <p className="text-body font-medium text-tg-text">{classification}</p>
       </div>
     </div>
   )

@@ -101,6 +101,21 @@ button, a {
     padding-top: env(safe-area-inset-top, 0);
   }
 
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Background color aliases */
+  .bg-bg-primary {
+    @apply bg-tg-bg;
+  }
+
   /* Price colors */
   .text-price-up {
     @apply text-crypto-up;
