@@ -96,7 +96,13 @@ func (s *WatchlistService) AddCoin(ctx context.Context, userID int64, coinSymbol
 	// Sanitize symbol
 	coinSymbol = strings.ToUpper(strings.TrimSpace(coinSymbol))
 
-	// Check user limits
+	// Check if plan expired and downgrade if needed
+	_, err := s.userService.CheckAndDowngradeExpiredPlan(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check user limits (with possibly updated plan)
 	user, err := s.userService.GetWithLimits(ctx, userID)
 	if err != nil {
 		return nil, err

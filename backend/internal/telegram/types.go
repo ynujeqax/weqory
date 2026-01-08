@@ -114,3 +114,132 @@ type AlertNotification struct {
 	PriceChange    float64
 	IsRecurring    bool
 }
+
+// ========== Telegram Stars Payment Types ==========
+
+// LabeledPrice represents a portion of the price for goods or services
+type LabeledPrice struct {
+	Label  string `json:"label"`
+	Amount int    `json:"amount"` // Price in the smallest units (Stars = 1 unit)
+}
+
+// CreateInvoiceLinkRequest represents a request to create an invoice link
+type CreateInvoiceLinkRequest struct {
+	Title                     string         `json:"title"`
+	Description               string         `json:"description"`
+	Payload                   string         `json:"payload"`
+	ProviderToken             string         `json:"provider_token,omitempty"` // Empty for Telegram Stars
+	Currency                  string         `json:"currency"`                 // "XTR" for Telegram Stars
+	Prices                    []LabeledPrice `json:"prices"`
+	MaxTipAmount              int            `json:"max_tip_amount,omitempty"`
+	SuggestedTipAmounts       []int          `json:"suggested_tip_amounts,omitempty"`
+	ProviderData              string         `json:"provider_data,omitempty"`
+	PhotoURL                  string         `json:"photo_url,omitempty"`
+	PhotoSize                 int            `json:"photo_size,omitempty"`
+	PhotoWidth                int            `json:"photo_width,omitempty"`
+	PhotoHeight               int            `json:"photo_height,omitempty"`
+	NeedName                  bool           `json:"need_name,omitempty"`
+	NeedPhoneNumber           bool           `json:"need_phone_number,omitempty"`
+	NeedEmail                 bool           `json:"need_email,omitempty"`
+	NeedShippingAddress       bool           `json:"need_shipping_address,omitempty"`
+	SendPhoneNumberToProvider bool           `json:"send_phone_number_to_provider,omitempty"`
+	SendEmailToProvider       bool           `json:"send_email_to_provider,omitempty"`
+	IsFlexible                bool           `json:"is_flexible,omitempty"`
+}
+
+// SendInvoiceRequest represents a request to send an invoice
+type SendInvoiceRequest struct {
+	ChatID                    int64          `json:"chat_id"`
+	Title                     string         `json:"title"`
+	Description               string         `json:"description"`
+	Payload                   string         `json:"payload"`
+	ProviderToken             string         `json:"provider_token,omitempty"` // Empty for Telegram Stars
+	Currency                  string         `json:"currency"`                 // "XTR" for Telegram Stars
+	Prices                    []LabeledPrice `json:"prices"`
+	MaxTipAmount              int            `json:"max_tip_amount,omitempty"`
+	SuggestedTipAmounts       []int          `json:"suggested_tip_amounts,omitempty"`
+	StartParameter            string         `json:"start_parameter,omitempty"`
+	ProviderData              string         `json:"provider_data,omitempty"`
+	PhotoURL                  string         `json:"photo_url,omitempty"`
+	PhotoSize                 int            `json:"photo_size,omitempty"`
+	PhotoWidth                int            `json:"photo_width,omitempty"`
+	PhotoHeight               int            `json:"photo_height,omitempty"`
+	NeedName                  bool           `json:"need_name,omitempty"`
+	NeedPhoneNumber           bool           `json:"need_phone_number,omitempty"`
+	NeedEmail                 bool           `json:"need_email,omitempty"`
+	NeedShippingAddress       bool           `json:"need_shipping_address,omitempty"`
+	SendPhoneNumberToProvider bool           `json:"send_phone_number_to_provider,omitempty"`
+	SendEmailToProvider       bool           `json:"send_email_to_provider,omitempty"`
+	IsFlexible                bool           `json:"is_flexible,omitempty"`
+	DisableNotification       bool           `json:"disable_notification,omitempty"`
+	ProtectContent            bool           `json:"protect_content,omitempty"`
+	ReplyMarkup               interface{}    `json:"reply_markup,omitempty"`
+}
+
+// InvoiceLinkResult represents the result of creating an invoice link
+type InvoiceLinkResult struct {
+	InvoiceLink string `json:"invoice_link"`
+}
+
+// SuccessfulPayment contains information about a successful payment
+type SuccessfulPayment struct {
+	Currency                string     `json:"currency"`
+	TotalAmount             int        `json:"total_amount"`
+	InvoicePayload          string     `json:"invoice_payload"`
+	ShippingOptionID        string     `json:"shipping_option_id,omitempty"`
+	OrderInfo               *OrderInfo `json:"order_info,omitempty"`
+	TelegramPaymentChargeID string     `json:"telegram_payment_charge_id"`
+	ProviderPaymentChargeID string     `json:"provider_payment_charge_id"`
+}
+
+// OrderInfo represents information about an order
+type OrderInfo struct {
+	Name            string           `json:"name,omitempty"`
+	PhoneNumber     string           `json:"phone_number,omitempty"`
+	Email           string           `json:"email,omitempty"`
+	ShippingAddress *ShippingAddress `json:"shipping_address,omitempty"`
+}
+
+// ShippingAddress represents a shipping address
+type ShippingAddress struct {
+	CountryCode string `json:"country_code"`
+	State       string `json:"state"`
+	City        string `json:"city"`
+	StreetLine1 string `json:"street_line1"`
+	StreetLine2 string `json:"street_line2"`
+	PostCode    string `json:"post_code"`
+}
+
+// PreCheckoutQuery contains information about an incoming pre-checkout query
+type PreCheckoutQuery struct {
+	ID               string     `json:"id"`
+	From             *User      `json:"from"`
+	Currency         string     `json:"currency"`
+	TotalAmount      int        `json:"total_amount"`
+	InvoicePayload   string     `json:"invoice_payload"`
+	ShippingOptionID string     `json:"shipping_option_id,omitempty"`
+	OrderInfo        *OrderInfo `json:"order_info,omitempty"`
+}
+
+// AnswerPreCheckoutQueryRequest represents a request to answer a pre-checkout query
+type AnswerPreCheckoutQueryRequest struct {
+	PreCheckoutQueryID string `json:"pre_checkout_query_id"`
+	OK                 bool   `json:"ok"`
+	ErrorMessage       string `json:"error_message,omitempty"`
+}
+
+// PaymentUpdate represents a Telegram update with payment information
+type PaymentUpdate struct {
+	UpdateID         int64              `json:"update_id"`
+	Message          *PaymentMessage    `json:"message,omitempty"`
+	PreCheckoutQuery *PreCheckoutQuery  `json:"pre_checkout_query,omitempty"`
+}
+
+// PaymentMessage represents a message that may contain payment info
+type PaymentMessage struct {
+	MessageID         int64              `json:"message_id"`
+	From              *User              `json:"from,omitempty"`
+	Chat              *Chat              `json:"chat"`
+	Date              int64              `json:"date"`
+	SuccessfulPayment *SuccessfulPayment `json:"successful_payment,omitempty"`
+}

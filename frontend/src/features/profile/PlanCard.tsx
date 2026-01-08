@@ -8,14 +8,15 @@ import type { Plan } from '@/types'
 interface PlanCardProps {
   plan: Plan
   name: string
-  priceMonthly?: number
-  priceYearly?: number
+  priceMonthly?: number | null
+  priceYearly?: number | null
   features: string[]
   isCurrent?: boolean
   isPopular?: boolean
   isBestValue?: boolean
   billingPeriod: 'monthly' | 'yearly'
   onSelect?: () => void
+  isLoading?: boolean
 }
 
 export function PlanCard({
@@ -29,6 +30,7 @@ export function PlanCard({
   isBestValue,
   billingPeriod,
   onSelect,
+  isLoading,
 }: PlanCardProps) {
   const price = billingPeriod === 'yearly' ? priceYearly : priceMonthly
   const isFree = !price
@@ -95,7 +97,8 @@ export function PlanCard({
         <Button
           variant={isCurrent ? 'secondary' : isPopular ? 'primary' : 'secondary'}
           onClick={onSelect}
-          disabled={isCurrent}
+          disabled={isCurrent || isLoading}
+          isLoading={isLoading}
           className="w-full"
         >
           {isCurrent ? 'Current Plan' : isFree ? 'Downgrade' : 'Upgrade'}

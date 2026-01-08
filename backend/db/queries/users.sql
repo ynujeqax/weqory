@@ -62,3 +62,34 @@ SELECT
 FROM users u
 JOIN subscription_plans sp ON sp.name = u.plan
 WHERE u.id = $1;
+
+-- name: DowngradePlanToStandard :one
+UPDATE users SET
+    plan = 'standard',
+    plan_expires_at = NULL,
+    plan_period = NULL,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: GetExpiredPlans :many
+SELECT id, telegram_id, plan, plan_expires_at
+FROM users
+WHERE plan != 'standard'
+  AND plan_expires_at IS NOT NULL
+  AND plan_expires_at < NOW();
+
+-- name: GetUsersNearExpiration :many
+SELECT id, telegram_id, plan, plan_expires_at
+FROM users
+WHERE plan != 'standard'
+  AND plan_expires_at IS NOT NULL
+  AND plan_expires_at > NOW()
+  AND plan_expires_at < NOW() + INTERVAL '7 days';
+
+-- name: ResetMonthlyNotifications :exec
+UPDATE users SET
+    notifications_used = 0,
+    notifications_reset_at = NOW()
+WHERE notifications_reset_at < DATE_TRUNC('month', NOW())
+   OR notifications_reset_at IS NULL;

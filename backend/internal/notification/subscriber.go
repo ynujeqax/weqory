@@ -211,10 +211,14 @@ func (s *Subscriber) processNotification(ctx context.Context, payload Notificati
 		)
 		// Continue anyway
 	} else if !canSend {
+		maxVal := -1
+		if max != nil {
+			maxVal = *max
+		}
 		s.logger.Warn("user notification limit reached",
 			slog.Int64("user_id", payload.UserID),
 			slog.Int("used", used),
-			slog.Int("max", max),
+			slog.Int("max", maxVal),
 		)
 		return
 	}

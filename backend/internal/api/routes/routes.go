@@ -30,6 +30,7 @@ type Handlers struct {
 	Alerts    *handlers.AlertsHandler
 	History   *handlers.HistoryHandler
 	Market    *handlers.MarketHandler
+	Payment   *handlers.PaymentHandler
 }
 
 // Setup sets up all API routes
@@ -105,6 +106,11 @@ func setupPublicRoutes(router fiber.Router, cfg *Config) {
 
 	// Public coins list (for market page)
 	router.Get("/coins", cfg.Handlers.Watchlist.GetAvailableCoins)
+
+	// Payment routes (public)
+	payments := router.Group("/payments")
+	payments.Get("/plans", cfg.Handlers.Payment.GetPlans)      // Get available plans (no auth)
+	payments.Post("/webhook", cfg.Handlers.Payment.HandleWebhook) // Telegram webhook (no auth)
 }
 
 // setupProtectedRoutes sets up routes that require authentication
@@ -134,6 +140,11 @@ func setupProtectedRoutes(router fiber.Router, cfg *Config) {
 	// History routes
 	history := router.Group("/history")
 	history.Get("/", cfg.Handlers.History.GetHistory)
+
+	// Payment routes (protected - require auth)
+	payments := router.Group("/payments")
+	payments.Post("/create-invoice", cfg.Handlers.Payment.CreateInvoice)
+	payments.Get("/history", cfg.Handlers.Payment.GetPaymentHistory)
 }
 
 // setupWebSocketRoutes sets up WebSocket routes

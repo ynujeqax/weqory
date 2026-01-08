@@ -1,6 +1,8 @@
 package notification
 
 import (
+	"io"
+	"log/slog"
 	"sync"
 	"testing"
 	"time"
@@ -9,11 +11,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// testLogger returns a silent logger for tests
+func testLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(io.Discard, nil))
+}
+
 // TestTryMarkProcessed_ConcurrentRequests tests the fix for Bug #4
 // Verifies atomic check-and-mark prevents duplicate processing
 func TestTryMarkProcessed_ConcurrentRequests(t *testing.T) {
 	subscriber := &Subscriber{
 		processedIDs: make(map[string]time.Time),
+		logger:       testLogger(),
 	}
 
 	eventID := "test-event-123"
@@ -55,6 +63,7 @@ func TestTryMarkProcessed_ConcurrentRequests(t *testing.T) {
 func TestTryMarkProcessed_UnboundedGrowthPrevention(t *testing.T) {
 	subscriber := &Subscriber{
 		processedIDs: make(map[string]time.Time),
+		logger:       testLogger(),
 	}
 
 	// Fill the map beyond the limit with old entries
@@ -85,6 +94,7 @@ func TestTryMarkProcessed_UnboundedGrowthPrevention(t *testing.T) {
 func TestTryMarkProcessed_EmergencyCleanup(t *testing.T) {
 	subscriber := &Subscriber{
 		processedIDs: make(map[string]time.Time),
+		logger:       testLogger(),
 	}
 
 	// Fill with recent entries (within 10 minutes)
@@ -115,6 +125,7 @@ func TestTryMarkProcessed_EmergencyCleanup(t *testing.T) {
 func TestRemoveProcessed(t *testing.T) {
 	subscriber := &Subscriber{
 		processedIDs: make(map[string]time.Time),
+		logger:       testLogger(),
 	}
 
 	eventID := "test-event"
@@ -133,6 +144,7 @@ func TestRemoveProcessed(t *testing.T) {
 func TestCleanupProcessedIDs(t *testing.T) {
 	subscriber := &Subscriber{
 		processedIDs: make(map[string]time.Time),
+		logger:       testLogger(),
 	}
 
 	// Add old and new events
@@ -165,6 +177,7 @@ func TestCleanupProcessedIDs(t *testing.T) {
 func TestTryMarkProcessed_ThreadSafety(t *testing.T) {
 	subscriber := &Subscriber{
 		processedIDs: make(map[string]time.Time),
+		logger:       testLogger(),
 	}
 
 	const goroutines = 1000
@@ -198,6 +211,7 @@ func TestTryMarkProcessed_ThreadSafety(t *testing.T) {
 func BenchmarkTryMarkProcessed(b *testing.B) {
 	subscriber := &Subscriber{
 		processedIDs: make(map[string]time.Time),
+		logger:       slog.New(slog.NewTextHandler(io.Discard, nil)),
 	}
 
 	b.ResetTimer()
@@ -211,6 +225,7 @@ func BenchmarkTryMarkProcessed(b *testing.B) {
 func BenchmarkTryMarkProcessed_Concurrent(b *testing.B) {
 	subscriber := &Subscriber{
 		processedIDs: make(map[string]time.Time),
+		logger:       slog.New(slog.NewTextHandler(io.Discard, nil)),
 	}
 
 	b.RunParallel(func(pb *testing.PB) {

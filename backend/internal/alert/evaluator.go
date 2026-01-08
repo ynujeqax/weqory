@@ -13,10 +13,14 @@ import (
 type AlertType string
 
 const (
-	AlertTypePriceAbove     AlertType = "PRICE_ABOVE"
-	AlertTypePriceBelow     AlertType = "PRICE_BELOW"
-	AlertTypePriceChangePct AlertType = "PRICE_CHANGE_PCT"
-	AlertTypePeriodic       AlertType = "PERIODIC"
+	AlertTypePriceAbove      AlertType = "PRICE_ABOVE"
+	AlertTypePriceBelow      AlertType = "PRICE_BELOW"
+	AlertTypePriceChangePct  AlertType = "PRICE_CHANGE_PCT"
+	AlertTypePeriodic        AlertType = "PERIODIC"
+	AlertTypeVolumeSpike     AlertType = "VOLUME_SPIKE"
+	AlertTypeVolumeChangePct AlertType = "VOLUME_CHANGE_PCT"
+	AlertTypeMarketCapAbove  AlertType = "MARKET_CAP_ABOVE"
+	AlertTypeMarketCapBelow  AlertType = "MARKET_CAP_BELOW"
 )
 
 // ConditionOperator represents comparison operators
@@ -46,6 +50,8 @@ type Alert struct {
 	LastTriggeredAt    *time.Time
 	PriceWhenCreated   float64
 	CreatedAt          time.Time
+	// Extended data from coins table (for market cap alerts)
+	CoinMarketCap *float64
 }
 
 // TriggerEvent represents a triggered alert event
@@ -121,6 +127,18 @@ func (e *Evaluator) checkCondition(ctx context.Context, alert *Alert, priceData 
 	case AlertTypePeriodic:
 		return e.checkPeriodic(alert)
 
+	case AlertTypeVolumeSpike:
+		return e.checkVolumeSpike(ctx, alert, priceData)
+
+	case AlertTypeVolumeChangePct:
+		return e.checkVolumeChangePct(ctx, alert, priceData)
+
+	case AlertTypeMarketCapAbove:
+		return e.checkMarketCapAbove(alert)
+
+	case AlertTypeMarketCapBelow:
+		return e.checkMarketCapBelow(alert)
+
 	default:
 		e.logger.Warn("unknown alert type", slog.String("type", string(alert.AlertType)))
 		return false, nil
@@ -171,6 +189,77 @@ func (e *Evaluator) checkPeriodic(alert *Alert) (bool, error) {
 
 	// Check if enough time has passed
 	return time.Since(*alert.LastTriggeredAt) >= interval, nil
+}
+
+// checkVolumeSpike checks if current volume is significantly higher than average
+// ConditionValue represents the spike threshold as percentage (e.g., 200 = 200% of avg)
+func (e *Evaluator) checkVolumeSpike(ctx context.Context, alert *Alert, priceData *binance.PriceData) (bool, error) {
+	if priceData.Volume24h <= 0 {
+		return false, nil
+	}
+
+	// Get average volume from cache (7-day average)
+	avgVolume, err := e.priceCache.GetAverageVolume(ctx, alert.BinanceSymbol, 7*24*time.Hour)
+	if err != nil {
+		// If no historical data, can't determine spike
+		e.logger.Debug("no volume history for spike check",
+			slog.String("symbol", alert.BinanceSymbol),
+			slog.String("error", err.Error()),
+		)
+		return false, nil
+	}
+
+	if avgVolume <= 0 {
+		return false, nil
+	}
+
+	// Calculate current volume as percentage of average
+	volumeRatio := (priceData.Volume24h / avgVolume) * 100
+
+	// Trigger if current volume exceeds threshold percentage of average
+	// e.g., if ConditionValue = 200, trigger when volume is 2x (200%) of average
+	return volumeRatio >= alert.ConditionValue, nil
+}
+
+// checkVolumeChangePct checks if volume changed by at least X% within timeframe
+func (e *Evaluator) checkVolumeChangePct(ctx context.Context, alert *Alert, priceData *binance.PriceData) (bool, error) {
+	duration := parseTimeframe(alert.ConditionTimeframe)
+	if duration == 0 {
+		duration = 24 * time.Hour // Default to 24h
+	}
+
+	// Get volume change percentage
+	volumeChange, err := e.priceCache.GetVolumeChange(ctx, alert.BinanceSymbol, duration)
+	if err != nil {
+		e.logger.Debug("no volume history for change check",
+			slog.String("symbol", alert.BinanceSymbol),
+			slog.String("error", err.Error()),
+		)
+		return false, nil
+	}
+
+	// Trigger if absolute volume change >= target percentage
+	absChange := volumeChange
+	if absChange < 0 {
+		absChange = -absChange
+	}
+	return absChange >= alert.ConditionValue, nil
+}
+
+// checkMarketCapAbove checks if market cap is above target value
+func (e *Evaluator) checkMarketCapAbove(alert *Alert) (bool, error) {
+	if alert.CoinMarketCap == nil {
+		return false, nil
+	}
+	return *alert.CoinMarketCap > alert.ConditionValue, nil
+}
+
+// checkMarketCapBelow checks if market cap is below target value
+func (e *Evaluator) checkMarketCapBelow(alert *Alert) (bool, error) {
+	if alert.CoinMarketCap == nil {
+		return false, nil
+	}
+	return *alert.CoinMarketCap < alert.ConditionValue, nil
 }
 
 // EvaluateBatch evaluates multiple alerts against price data

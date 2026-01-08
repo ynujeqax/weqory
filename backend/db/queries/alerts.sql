@@ -79,3 +79,16 @@ DELETE FROM alerts WHERE user_id = $1 AND coin_id = $2;
 
 -- name: GetAlertOwner :one
 SELECT user_id FROM alerts WHERE id = $1;
+
+-- name: PauseExcessAlerts :execrows
+-- Pauses alerts that exceed the user's limit, keeping the oldest ones active
+WITH ranked AS (
+    SELECT id, ROW_NUMBER() OVER (ORDER BY created_at ASC) as rn
+    FROM alerts WHERE user_id = $1 AND is_paused = false
+)
+UPDATE alerts SET is_paused = true, updated_at = NOW()
+WHERE id IN (SELECT id FROM ranked WHERE rn > $2);
+
+-- name: GetExcessAlertsCount :one
+SELECT GREATEST(0, COUNT(*) - $2::int) as excess_count
+FROM alerts WHERE user_id = $1 AND is_paused = false;

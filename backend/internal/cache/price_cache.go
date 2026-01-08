@@ -12,11 +12,14 @@ import (
 )
 
 const (
-	priceKeyPrefix     = "price:"
-	priceHistoryPrefix = "price_history:"
-	priceTTL           = 5 * time.Minute
-	historyTTL         = 24 * time.Hour
-	historyMaxLen      = 1440 // 24 hours of minute data
+	priceKeyPrefix      = "price:"
+	priceHistoryPrefix  = "price_history:"
+	volumeHistoryPrefix = "volume_history:"
+	priceTTL            = 5 * time.Minute
+	historyTTL          = 24 * time.Hour
+	volumeHistoryTTL    = 7 * 24 * time.Hour // 7 days for volume history
+	historyMaxLen       = 1440               // 24 hours of minute data
+	volumeHistoryMaxLen = 168                // 7 days of hourly data
 )
 
 // PriceCache handles price caching in Redis
@@ -248,4 +251,115 @@ func (c *PriceCache) GetAllSymbols(ctx context.Context) ([]string, error) {
 	}
 
 	return symbols, nil
+}
+
+// VolumeHistoryEntry represents a historical volume point
+type VolumeHistoryEntry struct {
+	Timestamp int64   `json:"t"`
+	Volume    float64 `json:"v"`
+}
+
+// AddToVolumeHistory adds a volume point to the historical data (hourly)
+func (c *PriceCache) AddToVolumeHistory(ctx context.Context, symbol string, volume float64, timestamp time.Time) error {
+	key := volumeHistoryPrefix + symbol
+
+	// Store as JSON with timestamp and volume
+	entry := fmt.Sprintf(`{"t":%d,"v":%f}`, timestamp.Unix(), volume)
+
+	pipe := c.client.Pipeline()
+	pipe.LPush(ctx, key, entry)
+	pipe.LTrim(ctx, key, 0, volumeHistoryMaxLen-1)
+	pipe.Expire(ctx, key, volumeHistoryTTL)
+
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to add volume to history: %w", err)
+	}
+
+	return nil
+}
+
+// GetVolumeHistory retrieves volume history for a symbol
+func (c *PriceCache) GetVolumeHistory(ctx context.Context, symbol string, limit int64) ([]VolumeHistoryEntry, error) {
+	key := volumeHistoryPrefix + symbol
+
+	if limit <= 0 || limit > volumeHistoryMaxLen {
+		limit = volumeHistoryMaxLen
+	}
+
+	results, err := c.client.LRange(ctx, key, 0, limit-1).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get volume history: %w", err)
+	}
+
+	history := make([]VolumeHistoryEntry, 0, len(results))
+	for _, result := range results {
+		var entry VolumeHistoryEntry
+		if err := json.Unmarshal([]byte(result), &entry); err != nil {
+			continue
+		}
+		history = append(history, entry)
+	}
+
+	return history, nil
+}
+
+// GetAverageVolume calculates average volume over a duration
+func (c *PriceCache) GetAverageVolume(ctx context.Context, symbol string, duration time.Duration) (float64, error) {
+	history, err := c.GetVolumeHistory(ctx, symbol, volumeHistoryMaxLen)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(history) == 0 {
+		return 0, fmt.Errorf("no volume history available")
+	}
+
+	targetTime := time.Now().Add(-duration).Unix()
+
+	var totalVolume float64
+	var count int
+	for _, entry := range history {
+		if entry.Timestamp >= targetTime {
+			totalVolume += entry.Volume
+			count++
+		}
+	}
+
+	if count == 0 {
+		return 0, fmt.Errorf("no volume data in timeframe")
+	}
+
+	return totalVolume / float64(count), nil
+}
+
+// GetVolumeChange calculates volume change percentage over a timeframe
+func (c *PriceCache) GetVolumeChange(ctx context.Context, symbol string, duration time.Duration) (float64, error) {
+	history, err := c.GetVolumeHistory(ctx, symbol, volumeHistoryMaxLen)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(history) == 0 {
+		return 0, fmt.Errorf("no volume history available")
+	}
+
+	currentVolume := history[0].Volume
+	targetTime := time.Now().Add(-duration).Unix()
+
+	// Find the volume closest to the target time
+	var oldVolume float64
+	for _, entry := range history {
+		if entry.Timestamp <= targetTime {
+			oldVolume = entry.Volume
+			break
+		}
+		oldVolume = entry.Volume // Use oldest available if not enough history
+	}
+
+	if oldVolume == 0 {
+		return 0, fmt.Errorf("no old volume data available")
+	}
+
+	return ((currentVolume - oldVolume) / oldVolume) * 100, nil
 }

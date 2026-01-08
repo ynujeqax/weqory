@@ -16,6 +16,7 @@ import (
 	"github.com/weqory/backend/internal/api/routes"
 	"github.com/weqory/backend/internal/coingecko"
 	"github.com/weqory/backend/internal/service"
+	"github.com/weqory/backend/internal/telegram"
 	"github.com/weqory/backend/internal/websocket"
 	"github.com/weqory/backend/pkg/config"
 	"github.com/weqory/backend/pkg/database"
@@ -83,6 +84,18 @@ func main() {
 	// AuthService needs JWT config and bot token
 	authService := service.NewAuthService(userService, cfg.JWT.Secret, cfg.Telegram.BotToken, cfg.JWT.Expiry)
 
+	// Initialize Telegram bot client for payments
+	telegramBot := telegram.NewClient(cfg.Telegram.BotToken, log.Logger)
+
+	// Initialize payment service
+	paymentService := service.NewPaymentService(pool, telegramBot, log.Logger)
+
+	// Initialize cleanup service for background tasks
+	cleanupService := service.NewCleanupService(pool, userService, log.Logger)
+	cleanupService.Start(ctx)
+	defer cleanupService.Stop()
+	log.Info("cleanup service started")
+
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService, v)
 	userHandler := handlers.NewUserHandler(userService, watchlistService, alertService, historyService, v)
@@ -90,6 +103,7 @@ func main() {
 	alertsHandler := handlers.NewAlertsHandler(alertService, userService, v)
 	historyHandler := handlers.NewHistoryHandler(historyService)
 	marketHandler := handlers.NewMarketHandler(watchlistService)
+	paymentHandler := handlers.NewPaymentHandler(paymentService, v, log.Logger)
 
 	// Initialize WebSocket hub
 	wsHub := websocket.NewHub(log.Logger)
@@ -169,6 +183,7 @@ func main() {
 			Alerts:    alertsHandler,
 			History:   historyHandler,
 			Market:    marketHandler,
+			Payment:   paymentHandler,
 		},
 		WSHandler: wsHandler,
 	})

@@ -2,36 +2,37 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
-import { useUser } from '@/api/hooks'
+import { useUser, usePlans, useCreateInvoice } from '@/api/hooks'
 import { useTelegram } from '@/hooks/useTelegram'
 import { useToast } from '@/hooks/useToast'
 import { Tabs } from '@/components/ui/Tabs'
 import { Spinner } from '@/components/ui/Spinner'
 import { PlanCard } from '@/features/profile/PlanCard'
 import { PlanComparison } from '@/features/profile/PlanComparison'
-import type { Plan } from '@/types'
+import { getErrorMessage } from '@/api/client'
+import type { Plan as PlanType } from '@/types'
 
 const planFeatures = {
   standard: [
-    '10 coins in watchlist',
-    '5 active alerts',
-    '100 notifications/month',
-    '7 days history',
+    '3 coins in watchlist',
+    '6 active alerts',
+    '18 notifications/month',
+    '1 day history',
     'Real-time price updates',
   ],
   pro: [
-    '50 coins in watchlist',
-    '25 active alerts',
-    '500 notifications/month',
-    '30 days history',
+    '9 coins in watchlist',
+    '18 active alerts',
+    '162 notifications/month',
+    '7 days history',
     'Real-time price updates',
     'Advanced alert types',
   ],
   ultimate: [
-    'Unlimited coins',
-    'Unlimited alerts',
+    '27 coins in watchlist',
+    '54 active alerts',
     'Unlimited notifications',
-    'Unlimited history',
+    '30 days history',
     'Real-time price updates',
     'Advanced alert types',
     'Priority support',
@@ -43,25 +44,77 @@ export default function Subscription() {
   const { hapticFeedback, showAlert } = useTelegram()
   const { showToast } = useToast()
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null)
 
-  const { data: userData, isLoading } = useUser()
+  const { data: userData, isLoading: userLoading, refetch: refetchUser } = useUser()
+  const { data: plans, isLoading: plansLoading } = usePlans()
+  const createInvoice = useCreateInvoice()
 
   const handleSelectPlan = useCallback(
-    async (_plan: Plan) => {
+    async (plan: PlanType) => {
       hapticFeedback('medium')
 
-      // Show coming soon message for now
-      await showAlert('Payment integration coming soon! This will use Telegram Stars for secure in-app purchases.')
+      // Can't purchase standard plan
+      if (plan === 'standard') {
+        await showAlert('Standard is the free plan. Your subscription will downgrade automatically when it expires.')
+        return
+      }
 
-      showToast({
-        type: 'info',
-        message: 'Payment feature coming soon',
-      })
+      // Check if Telegram WebApp is available
+      const webApp = window.Telegram?.WebApp
+      if (!webApp) {
+        showToast({
+          type: 'error',
+          message: 'Please open this app in Telegram',
+        })
+        return
+      }
+
+      setProcessingPlan(plan)
+
+      try {
+        // Create invoice via API
+        const { invoiceLink } = await createInvoice.mutateAsync({
+          plan,
+          period: billingPeriod,
+        })
+
+        // Open invoice in Telegram
+        webApp.openInvoice(invoiceLink, (status) => {
+          setProcessingPlan(null)
+
+          if (status === 'paid') {
+            hapticFeedback('success')
+            showToast({
+              type: 'success',
+              message: 'Payment successful! Your plan is now active.',
+            })
+            // Refresh user data to get updated plan
+            refetchUser()
+          } else if (status === 'cancelled') {
+            showToast({
+              type: 'info',
+              message: 'Payment cancelled',
+            })
+          } else if (status === 'failed') {
+            showToast({
+              type: 'error',
+              message: 'Payment failed. Please try again.',
+            })
+          }
+        })
+      } catch (error) {
+        setProcessingPlan(null)
+        showToast({
+          type: 'error',
+          message: getErrorMessage(error),
+        })
+      }
     },
-    [hapticFeedback, showAlert, showToast]
+    [hapticFeedback, showAlert, showToast, billingPeriod, createInvoice, refetchUser]
   )
 
-  if (isLoading || !userData) {
+  if (userLoading || !userData || plansLoading) {
     return (
       <div className="min-h-screen bg-tg-bg flex items-center justify-center">
         <Spinner size="lg" />
@@ -71,6 +124,15 @@ export default function Subscription() {
 
   const { user } = userData
   const currentPlan = user.plan
+
+  // Get prices from API plans
+  const getPlanPrices = (planName: string) => {
+    const apiPlan = plans?.find(p => p.name === planName)
+    return {
+      priceMonthly: apiPlan?.priceMonthly ?? undefined,
+      priceYearly: apiPlan?.priceYearly ?? undefined,
+    }
+  }
 
   return (
     <div className="min-h-screen bg-tg-bg pb-20">
@@ -118,30 +180,31 @@ export default function Subscription() {
             isCurrent={currentPlan === 'standard'}
             billingPeriod={billingPeriod}
             onSelect={() => handleSelectPlan('standard')}
+            isLoading={processingPlan === 'standard'}
           />
 
           <PlanCard
             plan="pro"
             name="Pro"
-            priceMonthly={149}
-            priceYearly={1249}
+            {...getPlanPrices('pro')}
             features={planFeatures.pro}
             isCurrent={currentPlan === 'pro'}
             isPopular={true}
             billingPeriod={billingPeriod}
             onSelect={() => handleSelectPlan('pro')}
+            isLoading={processingPlan === 'pro'}
           />
 
           <PlanCard
             plan="ultimate"
             name="Ultimate"
-            priceMonthly={349}
-            priceYearly={2999}
+            {...getPlanPrices('ultimate')}
             features={planFeatures.ultimate}
             isCurrent={currentPlan === 'ultimate'}
             isBestValue={true}
             billingPeriod={billingPeriod}
             onSelect={() => handleSelectPlan('ultimate')}
+            isLoading={processingPlan === 'ultimate'}
           />
         </div>
 
@@ -166,6 +229,26 @@ export default function Subscription() {
           </ul>
         </motion.div>
 
+        {/* Expiration info for paid plans */}
+        {user.planExpiresAt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            className="bg-surface rounded-lg p-4"
+          >
+            <p className="text-label font-semibold text-tg-text">
+              Current Subscription
+            </p>
+            <p className="text-body-sm text-tg-hint mt-1">
+              Your {user.plan} plan expires on{' '}
+              <span className="text-tg-text font-medium">
+                {new Date(user.planExpiresAt).toLocaleDateString()}
+              </span>
+            </p>
+          </motion.div>
+        )}
+
         {/* Footer Note */}
         <motion.p
           initial={{ opacity: 0 }}
@@ -173,7 +256,7 @@ export default function Subscription() {
           transition={{ delay: 0.4 }}
           className="text-body-sm text-tg-hint text-center"
         >
-          All prices are in Telegram Stars (⭐)
+          All prices are in Telegram Stars
         </motion.p>
       </div>
     </div>

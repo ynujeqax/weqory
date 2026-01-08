@@ -140,7 +140,13 @@ func (s *AlertService) Create(ctx context.Context, userID int64, params CreateAl
 	// Sanitize symbol
 	coinSymbol := strings.ToUpper(strings.TrimSpace(params.CoinSymbol))
 
-	// Check user limits
+	// Check if plan expired and downgrade if needed
+	_, err := s.userService.CheckAndDowngradeExpiredPlan(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check user limits (with possibly updated plan)
 	user, err := s.userService.GetWithLimits(ctx, userID)
 	if err != nil {
 		return nil, err

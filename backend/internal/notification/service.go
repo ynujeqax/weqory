@@ -67,7 +67,23 @@ func NewService(
 
 // SendNotification sends a notification to a user with rate limiting
 func (s *Service) SendNotification(ctx context.Context, notification telegram.AlertNotification) error {
-	// Check user rate limit
+	// Check monthly notification limit based on plan
+	monthlyAllowed, err := s.checkMonthlyNotificationLimit(ctx, notification.UserID)
+	if err != nil {
+		s.logger.Error("monthly limit check failed",
+			slog.Int64("user_id", notification.UserID),
+			slog.String("error", err.Error()),
+		)
+		// Continue anyway - better to send than to fail silently
+	} else if !monthlyAllowed {
+		s.mu.Lock()
+		s.rateLimited++
+		s.mu.Unlock()
+
+		return fmt.Errorf("monthly notification limit reached")
+	}
+
+	// Check user rate limit (per minute)
 	allowed, err := s.checkUserRateLimit(ctx, notification.UserID)
 	if err != nil {
 		s.logger.Error("rate limit check failed",
@@ -257,24 +273,52 @@ func (s *Service) incrementUserNotificationCount(ctx context.Context, userID int
 	return err
 }
 
-// GetUserNotificationLimit checks if user can receive notifications
-func (s *Service) GetUserNotificationLimit(ctx context.Context, userID int64) (bool, int, int, error) {
+// GetUserNotificationLimit checks if user can receive notifications based on plan limits
+func (s *Service) GetUserNotificationLimit(ctx context.Context, userID int64) (bool, int, *int, error) {
 	query := `
-		SELECT u.notifications_used, p.max_notifications, u.notifications_enabled
+		SELECT u.notifications_used, sp.max_notifications, u.notifications_enabled
 		FROM users u
-		JOIN plans p ON u.plan = p.id
+		JOIN subscription_plans sp ON sp.name = u.plan
 		WHERE u.id = $1
 	`
 
-	var used, max int
+	var used int
+	var maxNotifications *int
 	var enabled bool
-	err := s.pool.QueryRow(ctx, query, userID).Scan(&used, &max, &enabled)
+	err := s.pool.QueryRow(ctx, query, userID).Scan(&used, &maxNotifications, &enabled)
 	if err != nil {
-		return false, 0, 0, err
+		return false, 0, nil, err
 	}
 
-	canSend := enabled && (max == -1 || used < max)
-	return canSend, used, max, nil
+	// Can send if enabled AND (unlimited OR under limit)
+	canSend := enabled && (maxNotifications == nil || used < *maxNotifications)
+	return canSend, used, maxNotifications, nil
+}
+
+// checkMonthlyNotificationLimit checks if user is under their monthly notification limit
+func (s *Service) checkMonthlyNotificationLimit(ctx context.Context, userID int64) (bool, error) {
+	canSend, used, max, err := s.GetUserNotificationLimit(ctx, userID)
+	if err != nil {
+		s.logger.Error("failed to get notification limit",
+			slog.Int64("user_id", userID),
+			slog.String("error", err.Error()),
+		)
+		// Continue anyway - better to potentially over-notify than miss important alerts
+		return true, err
+	}
+
+	if !canSend {
+		if max != nil {
+			s.logger.Warn("user monthly notification limit reached",
+				slog.Int64("user_id", userID),
+				slog.Int("used", used),
+				slog.Int("max", *max),
+			)
+		}
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // GetStats returns notification statistics

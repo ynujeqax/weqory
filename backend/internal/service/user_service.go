@@ -198,6 +198,172 @@ func (s *UserService) UpdateSettings(ctx context.Context, userID int64, notifica
 	return &user, nil
 }
 
+// CheckAndDowngradeExpiredPlan checks if user's plan has expired and downgrades to standard
+// Returns true if plan was downgraded, false otherwise
+func (s *UserService) CheckAndDowngradeExpiredPlan(ctx context.Context, userID int64) (bool, error) {
+	user, err := s.GetByID(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+
+	// Check if plan is expired
+	if user.PlanExpiresAt == nil || time.Now().Before(*user.PlanExpiresAt) {
+		return false, nil // Not expired
+	}
+
+	// Plan is expired, downgrade to standard
+	if err := s.DowngradePlan(ctx, userID); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// DowngradePlan downgrades user to standard plan and enforces new limits
+func (s *UserService) DowngradePlan(ctx context.Context, userID int64) error {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return errors.Wrap(err, errors.ErrDatabase)
+	}
+	defer tx.Rollback(ctx)
+
+	// Lock user row to prevent concurrent modifications
+	var currentPlan string
+	err = tx.QueryRow(ctx, `
+		SELECT plan FROM users WHERE id = $1 FOR UPDATE
+	`, userID).Scan(&currentPlan)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return errors.ErrUserNotFound
+		}
+		return errors.Wrap(err, errors.ErrDatabase)
+	}
+
+	// Check if already on standard (idempotent)
+	if currentPlan == "standard" {
+		return nil // Already downgraded, nothing to do
+	}
+
+	// Get standard plan limits
+	var maxCoins, maxAlerts int
+	err = tx.QueryRow(ctx, `
+		SELECT max_coins, max_alerts FROM subscription_plans WHERE name = 'standard'
+	`).Scan(&maxCoins, &maxAlerts)
+	if err != nil {
+		return errors.Wrap(err, errors.ErrDatabase)
+	}
+
+	// Update user plan to standard
+	_, err = tx.Exec(ctx, `
+		UPDATE users SET
+			plan = 'standard',
+			plan_expires_at = NULL,
+			plan_period = NULL,
+			updated_at = NOW()
+		WHERE id = $1
+	`, userID)
+	if err != nil {
+		return errors.Wrap(err, errors.ErrDatabase)
+	}
+
+	// Pause excess alerts (keeping oldest ones active)
+	_, err = tx.Exec(ctx, `
+		WITH ranked AS (
+			SELECT id, ROW_NUMBER() OVER (ORDER BY created_at ASC) as rn
+			FROM alerts WHERE user_id = $1 AND is_paused = false
+		)
+		UPDATE alerts SET is_paused = true, updated_at = NOW()
+		WHERE id IN (SELECT id FROM ranked WHERE rn > $2)
+	`, userID, maxAlerts)
+	if err != nil {
+		return errors.Wrap(err, errors.ErrDatabase)
+	}
+
+	// Delete excess watchlist items (keeping oldest ones)
+	// First, identify and delete alerts for coins being removed
+	_, err = tx.Exec(ctx, `
+		WITH excess_items AS (
+			SELECT id, coin_id FROM (
+				SELECT id, coin_id, ROW_NUMBER() OVER (ORDER BY created_at ASC) as rn
+				FROM watchlist WHERE user_id = $1
+			) ranked WHERE rn > $2
+		)
+		DELETE FROM alerts
+		WHERE user_id = $1 AND coin_id IN (SELECT coin_id FROM excess_items)
+	`, userID, maxCoins)
+	if err != nil {
+		return errors.Wrap(err, errors.ErrDatabase)
+	}
+
+	// Then delete excess watchlist items
+	_, err = tx.Exec(ctx, `
+		WITH ranked AS (
+			SELECT id, ROW_NUMBER() OVER (ORDER BY created_at ASC) as rn
+			FROM watchlist WHERE user_id = $1
+		)
+		DELETE FROM watchlist WHERE id IN (SELECT id FROM ranked WHERE rn > $2)
+	`, userID, maxCoins)
+	if err != nil {
+		return errors.Wrap(err, errors.ErrDatabase)
+	}
+
+	return tx.Commit(ctx)
+}
+
+// GetExpiredPlanUsers returns users whose plans have expired
+func (s *UserService) GetExpiredPlanUsers(ctx context.Context) ([]User, error) {
+	query := `
+		SELECT id, telegram_id, username, first_name, last_name, language_code,
+		       plan, plan_expires_at, plan_period,
+		       notifications_used, notifications_reset_at,
+		       notifications_enabled, vibration_enabled,
+		       created_at, updated_at, last_active_at
+		FROM users
+		WHERE plan != 'standard'
+		  AND plan_expires_at IS NOT NULL
+		  AND plan_expires_at < NOW()
+	`
+
+	rows, err := s.pool.Query(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, errors.ErrDatabase)
+	}
+	defer rows.Close()
+
+	var users []User
+	for rows.Next() {
+		var user User
+		err := rows.Scan(
+			&user.ID, &user.TelegramID, &user.Username, &user.FirstName, &user.LastName,
+			&user.LanguageCode, &user.Plan, &user.PlanExpiresAt, &user.PlanPeriod,
+			&user.NotificationsUsed, &user.NotificationsResetAt,
+			&user.NotificationsEnabled, &user.VibrationEnabled,
+			&user.CreatedAt, &user.UpdatedAt, &user.LastActiveAt,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, errors.ErrDatabase)
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+// ResetMonthlyNotifications resets notification counts for all users at start of month
+func (s *UserService) ResetMonthlyNotifications(ctx context.Context) error {
+	_, err := s.pool.Exec(ctx, `
+		UPDATE users SET
+			notifications_used = 0,
+			notifications_reset_at = NOW()
+		WHERE notifications_reset_at < DATE_TRUNC('month', NOW())
+		   OR notifications_reset_at IS NULL
+	`)
+	if err != nil {
+		return errors.Wrap(err, errors.ErrDatabase)
+	}
+	return nil
+}
+
 func nilIfEmpty(s string) *string {
 	if s == "" {
 		return nil

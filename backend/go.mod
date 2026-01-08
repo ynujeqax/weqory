@@ -3,6 +3,7 @@ module github.com/weqory/backend
 go 1.23
 
 require (
+	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/gofiber/contrib/websocket v1.3.0
 	github.com/gofiber/fiber/v2 v2.52.4
@@ -39,6 +40,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
+	github.com/yuin/gopher-lua v1.1.1 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect

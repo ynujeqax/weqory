@@ -144,3 +144,15 @@ func Wrap(err error, appErr *AppError) *AppError {
 	}
 	return appErr.WithCause(err)
 }
+
+// Is reports whether any error in err's chain matches target.
+// This is a wrapper around the standard library's errors.Is
+func Is(err, target error) bool {
+	return errors.Is(err, target)
+}
+
+// As finds the first error in err's chain that matches target.
+// This is a wrapper around the standard library's errors.As
+func As(err error, target any) bool {
+	return errors.As(err, target)
+}

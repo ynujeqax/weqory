@@ -250,4 +250,22 @@ type CreateInvoiceRequest struct {
 // CreateInvoiceResponse represents invoice creation response
 type CreateInvoiceResponse struct {
 	InvoiceLink string `json:"invoice_link"`
+	PaymentID   int64  `json:"payment_id"`
+}
+
+// PaymentResponse represents a payment record
+type PaymentResponse struct {
+	ID                int64      `json:"id"`
+	Plan              string     `json:"plan"`
+	Period            string     `json:"period"`
+	StarsAmount       int        `json:"stars_amount"`
+	Status            string     `json:"status"`
+	CreatedAt         time.Time  `json:"created_at"`
+	CompletedAt       *time.Time `json:"completed_at,omitempty"`
+}
+
+// PaymentHistoryResponse represents payment history
+type PaymentHistoryResponse struct {
+	Items []PaymentResponse `json:"items"`
+	Total int               `json:"total"`
 }

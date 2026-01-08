@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import { registerServiceWorker } from './hooks/usePWA'
 import './styles/globals.css'
+import './lib/i18n' // Initialize i18n
 
 // Register service worker for PWA
 registerServiceWorker()

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { userApi, watchlistApi, alertsApi, historyApi, marketApi } from '.'
-import type { CreateAlertRequest, UpdateAlertRequest, UpdateSettingsRequest, WatchlistResponse, AvailableCoinsResponse, MarketOverviewResponse } from '.'
+import { userApi, watchlistApi, alertsApi, historyApi, marketApi, paymentsApi } from '.'
+import type { CreateAlertRequest, UpdateAlertRequest, UpdateSettingsRequest, WatchlistResponse, AvailableCoinsResponse, MarketOverviewResponse, CreateInvoiceRequest } from '.'
 import { offlineDB } from '@/lib/offlineDB'
 import type { Alert } from '@/types'
 
@@ -13,6 +13,8 @@ export const queryKeys = {
   alerts: ['alerts'] as const,
   history: (limit?: number, offset?: number) => ['history', limit, offset] as const,
   market: ['market'] as const,
+  plans: ['plans'] as const,
+  paymentHistory: ['paymentHistory'] as const,
 }
 
 // User hooks
@@ -311,6 +313,35 @@ export function useMarketOverview() {
   })
 
   return query
+}
+
+// Payment hooks
+export function usePlans() {
+  return useQuery({
+    queryKey: queryKeys.plans,
+    queryFn: paymentsApi.getPlans,
+    staleTime: 5 * 60_000, // 5 minutes (plans don't change often)
+  })
+}
+
+export function usePaymentHistory() {
+  return useQuery({
+    queryKey: queryKeys.paymentHistory,
+    queryFn: paymentsApi.getPaymentHistory,
+    staleTime: 60_000, // 1 minute
+  })
+}
+
+export function useCreateInvoice() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (request: CreateInvoiceRequest) => paymentsApi.createInvoice(request),
+    onSuccess: () => {
+      // Invalidate payment history after creating invoice
+      queryClient.invalidateQueries({ queryKey: queryKeys.paymentHistory })
+    },
+  })
 }
 
 // Hook to sync pending mutations when back online

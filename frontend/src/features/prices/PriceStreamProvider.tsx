@@ -41,8 +41,14 @@ export function PriceStreamProvider({ children }: PriceStreamProviderProps) {
   }, [])
 
   const send = useCallback((message: WebSocketMessage) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(message))
+    try {
+      const ws = wsRef.current
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(message))
+      }
+    } catch (error) {
+      // WebSocket might have closed between readyState check and send
+      console.warn('Failed to send WebSocket message:', error)
     }
   }, [])
 
