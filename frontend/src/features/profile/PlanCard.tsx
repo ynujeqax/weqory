@@ -96,10 +96,14 @@ export function PlanCard({
 
         {/* CTA Button */}
         <Button
-          variant={isCurrent ? 'secondary' : isPopular ? 'primary' : 'secondary'}
+          variant="secondary"
           onClick={onSelect}
           disabled={isCurrent}
-          className="w-full"
+          className={cn(
+            'w-full',
+            !isCurrent && isPopular && 'bg-warning hover:bg-warning/90 text-black',
+            !isCurrent && isUltimate && 'bg-cyan-500 hover:bg-cyan-400 text-black'
+          )}
         >
           {isCurrent ? 'Current Plan' : isFree ? 'Downgrade' : 'Upgrade'}
         </Button>
