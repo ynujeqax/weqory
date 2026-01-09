@@ -29,24 +29,32 @@ export function SettingsSection({
 
       <div className="space-y-4">
         {/* Notifications */}
-        <div className="flex items-start gap-3">
-          <Bell size={20} className="text-tg-hint mt-0.5" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Bell size={20} className="text-tg-hint flex-shrink-0" />
+            <div>
+              <p className="text-body text-tg-text">Notifications</p>
+              <p className="text-body-sm text-tg-hint">Receive alerts via Telegram</p>
+            </div>
+          </div>
           <Toggle
             checked={user.notificationsEnabled}
             onChange={onNotificationsChange}
-            label="Notifications"
-            description="Receive alerts via Telegram"
           />
         </div>
 
         {/* Vibration */}
-        <div className="flex items-start gap-3">
-          <Vibrate size={20} className="text-tg-hint mt-0.5" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Vibrate size={20} className="text-tg-hint flex-shrink-0" />
+            <div>
+              <p className="text-body text-tg-text">Haptic Feedback</p>
+              <p className="text-body-sm text-tg-hint">Vibration on interactions</p>
+            </div>
+          </div>
           <Toggle
             checked={user.vibrationEnabled}
             onChange={onVibrationChange}
-            label="Haptic Feedback"
-            description="Vibration on interactions"
           />
         </div>
 
