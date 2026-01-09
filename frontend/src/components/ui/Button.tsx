@@ -12,7 +12,7 @@ interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'ref'> {
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, leftIcon, rightIcon, children, disabled, onClick, ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', isLoading, leftIcon, rightIcon, children, disabled, onClick, type = 'button', ...props }, ref) => {
     const { hapticFeedback } = useTelegram()
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -36,6 +36,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <motion.button
         ref={ref}
+        type={type}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.1 }}
         className={cn(

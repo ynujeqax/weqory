@@ -45,6 +45,7 @@ export function PageHeader({ title, showBack, leftAction, action, className }: P
         <div className="flex items-center gap-2">
           {showBack && (
             <button
+              type="button"
               onClick={handleBack}
               className="p-1 -ml-1 text-tg-button"
             >
@@ -53,6 +54,7 @@ export function PageHeader({ title, showBack, leftAction, action, className }: P
           )}
           {leftAction && (
             <button
+              type="button"
               onClick={handleLeftAction}
               className="p-1 -ml-1 text-tg-button"
             >
@@ -63,6 +65,7 @@ export function PageHeader({ title, showBack, leftAction, action, className }: P
         </div>
         {action && (
           <button
+            type="button"
             onClick={handleAction}
             className="flex items-center gap-1 text-tg-button"
           >

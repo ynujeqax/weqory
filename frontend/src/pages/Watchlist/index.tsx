@@ -85,7 +85,7 @@ export default function WatchlistPage() {
 
   const handleAddCoin = () => {
     hapticFeedback('light')
-    navigate('/watchlist/add')
+    navigate('/add-coin')
   }
 
   const hasItems = !isLoading && watchlist && watchlist.items.length > 0

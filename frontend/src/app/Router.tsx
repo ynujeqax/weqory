@@ -28,7 +28,7 @@ export function AppRouter() {
   const location = useLocation()
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="popLayout">
       <Suspense fallback={<PageLoader />}>
         <Routes location={location} key={location.pathname}>
           {/* Public routes */}

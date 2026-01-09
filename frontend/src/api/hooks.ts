@@ -32,7 +32,42 @@ export function useUpdateSettings() {
 
   return useMutation({
     mutationFn: (settings: UpdateSettingsRequest) => userApi.updateSettings(settings),
-    onSuccess: () => {
+    // Optimistic update - UI responds instantly
+    onMutate: async (newSettings) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.user })
+
+      // Snapshot current value
+      const previousData = queryClient.getQueryData(queryKeys.user)
+
+      // Optimistically update cache
+      queryClient.setQueryData(queryKeys.user, (old: { user: Record<string, unknown>; limits: Record<string, unknown> } | undefined) => {
+        if (!old) return old
+        return {
+          ...old,
+          user: {
+            ...old.user,
+            // Map snake_case request to camelCase cache
+            ...(newSettings.notifications_enabled !== undefined && {
+              notificationsEnabled: newSettings.notifications_enabled,
+            }),
+            ...(newSettings.vibration_enabled !== undefined && {
+              vibrationEnabled: newSettings.vibration_enabled,
+            }),
+          },
+        }
+      })
+
+      return { previousData }
+    },
+    onError: (_err, _newSettings, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKeys.user, context.previousData)
+      }
+    },
+    onSettled: () => {
+      // Refetch to ensure consistency with server
       queryClient.invalidateQueries({ queryKey: queryKeys.user })
     },
   })

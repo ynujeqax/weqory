@@ -5,12 +5,18 @@ import { PriceStreamProvider } from './PriceStreamProvider'
 import { usePricesStore } from '@/stores/pricesStore'
 import { useAuthStore } from '@/stores/authStore'
 
-// Mock WebSocket
+// Mock WebSocket with static constants
 class MockWebSocket {
+  // Static constants matching real WebSocket
+  static readonly CONNECTING = 0
+  static readonly OPEN = 1
+  static readonly CLOSING = 2
+  static readonly CLOSED = 3
+
   static instances: MockWebSocket[] = []
 
   url: string
-  readyState: number = WebSocket.CONNECTING
+  readyState: number = MockWebSocket.CONNECTING
   onopen: ((ev: Event) => void) | null = null
   onmessage: ((ev: MessageEvent) => void) | null = null
   onclose: ((ev: CloseEvent) => void) | null = null
@@ -24,7 +30,7 @@ class MockWebSocket {
 
     // Simulate async connection
     setTimeout(() => {
-      this.readyState = WebSocket.OPEN
+      this.readyState = MockWebSocket.OPEN
       this.onopen?.(new Event('open'))
     }, 10)
   }
@@ -34,7 +40,7 @@ class MockWebSocket {
   }
 
   close() {
-    this.readyState = WebSocket.CLOSED
+    this.readyState = MockWebSocket.CLOSED
     this.onclose?.(new CloseEvent('close'))
   }
 
