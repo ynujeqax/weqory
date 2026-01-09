@@ -5,6 +5,7 @@ import { ArrowUpRight, ExternalLink } from 'lucide-react'
 import { useUser, useUpdateSettings, useDeleteWatchlist, useDeleteAlerts, useDeleteHistory } from '@/api/hooks'
 import { useTelegram } from '@/hooks/useTelegram'
 import { useToast } from '@/hooks/useToast'
+import { PageHeader } from '@/components/common/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { Divider } from '@/components/ui/Divider'
@@ -125,7 +126,9 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-tg-bg pb-20">
-      <div className="px-4 py-6 space-y-6">
+      <PageHeader title="Profile" />
+
+      <div className="px-4 py-4 space-y-6">
         {/* User Header with glass effect */}
         <UserHeader user={user} />
 
