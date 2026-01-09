@@ -27,8 +27,16 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ error: string; details?: unknown }>) => {
-    // Don't auto-logout on 401 - let components handle it
-    // This prevents logout loops during auth flow
+    // Auto-logout on 401 (unauthorized/expired token)
+    // Skip for auth endpoints to prevent logout loops
+    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/')) {
+      const authStore = useAuthStore.getState()
+      if (authStore.isAuthenticated) {
+        authStore.logout()
+        // Redirect to auth page
+        window.location.href = '/auth'
+      }
+    }
     return Promise.reject(error)
   }
 )

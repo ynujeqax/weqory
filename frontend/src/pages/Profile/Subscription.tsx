@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
-import { useUser } from '@/api/hooks'
+import { useUser, usePlans, useCreateInvoice, useRefreshAfterPayment } from '@/api/hooks'
 import { useTelegram } from '@/hooks/useTelegram'
 import { useToast } from '@/hooks/useToast'
 import { Tabs } from '@/components/ui/Tabs'
@@ -11,7 +11,8 @@ import { PlanCard } from '@/features/profile/PlanCard'
 import { PlanComparison } from '@/features/profile/PlanComparison'
 import type { Plan } from '@/types'
 
-const planFeatures = {
+// Fallback features if API doesn't return them
+const planFeatures: Record<Plan, string[]> = {
   standard: [
     '10 coins in watchlist',
     '5 active alerts',
@@ -38,28 +39,140 @@ const planFeatures = {
   ],
 }
 
+// Get dynamic features from plan data
+function getPlanFeatures(plan: { name: Plan; maxCoins: number; maxAlerts: number; maxNotifications: number | null; historyRetentionDays: number }): string[] {
+  const features: string[] = []
+
+  // Coins
+  if (plan.maxCoins >= 1000) {
+    features.push('Unlimited coins in watchlist')
+  } else {
+    features.push(`${plan.maxCoins} coins in watchlist`)
+  }
+
+  // Alerts
+  if (plan.maxAlerts >= 1000) {
+    features.push('Unlimited active alerts')
+  } else {
+    features.push(`${plan.maxAlerts} active alerts`)
+  }
+
+  // Notifications
+  if (plan.maxNotifications === null) {
+    features.push('Unlimited notifications')
+  } else {
+    features.push(`${plan.maxNotifications} notifications/month`)
+  }
+
+  // History
+  if (plan.historyRetentionDays >= 365) {
+    features.push('Unlimited history')
+  } else {
+    features.push(`${plan.historyRetentionDays} days history`)
+  }
+
+  // Common features
+  features.push('Real-time price updates')
+
+  if (plan.name !== 'standard') {
+    features.push('Advanced alert types')
+  }
+
+  if (plan.name === 'ultimate') {
+    features.push('Priority support')
+  }
+
+  return features
+}
+
 export default function Subscription() {
   const navigate = useNavigate()
-  const { hapticFeedback, showAlert } = useTelegram()
+  const { hapticFeedback, openInvoice } = useTelegram()
   const { showToast } = useToast()
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
+  const [processingPlan, setProcessingPlan] = useState<Plan | null>(null)
 
-  const { data: userData, isLoading } = useUser()
+  const { data: userData, isLoading: isUserLoading } = useUser()
+  const { data: plansData, isLoading: isPlansLoading } = usePlans()
+  const createInvoice = useCreateInvoice()
+  const refreshAfterPayment = useRefreshAfterPayment()
 
   const handleSelectPlan = useCallback(
-    async (_plan: Plan) => {
+    async (plan: Plan) => {
       hapticFeedback('medium')
 
-      // Show coming soon message for now
-      await showAlert('Payment integration coming soon! This will use Telegram Stars for secure in-app purchases.')
+      // Don't process free plan
+      if (plan === 'standard') {
+        showToast({
+          type: 'info',
+          message: 'Contact support to downgrade',
+        })
+        return
+      }
 
-      showToast({
-        type: 'info',
-        message: 'Payment feature coming soon',
-      })
+      // Prevent double-clicks
+      if (processingPlan) return
+      setProcessingPlan(plan)
+
+      try {
+        // Create invoice
+        const result = await createInvoice.mutateAsync({ plan, period: billingPeriod })
+
+        // Open Telegram payment
+        const status = await openInvoice(result.invoiceLink)
+
+        switch (status) {
+          case 'paid':
+            hapticFeedback('success')
+            showToast({
+              type: 'success',
+              message: `Welcome to ${plan.charAt(0).toUpperCase() + plan.slice(1)}!`,
+            })
+            // Refresh user data to get updated plan
+            refreshAfterPayment()
+            // Navigate back to profile
+            setTimeout(() => navigate('/profile'), 1500)
+            break
+
+          case 'cancelled':
+            hapticFeedback('light')
+            showToast({
+              type: 'info',
+              message: 'Payment cancelled',
+            })
+            break
+
+          case 'failed':
+            hapticFeedback('error')
+            showToast({
+              type: 'error',
+              message: 'Payment failed. Please try again.',
+            })
+            break
+
+          case 'pending':
+            showToast({
+              type: 'info',
+              message: 'Payment is being processed...',
+            })
+            // Still refresh in case it completes
+            setTimeout(refreshAfterPayment, 3000)
+            break
+        }
+      } catch (error) {
+        hapticFeedback('error')
+        showToast({
+          type: 'error',
+          message: error instanceof Error ? error.message : 'Failed to create invoice',
+        })
+      } finally {
+        setProcessingPlan(null)
+      }
     },
-    [hapticFeedback, showAlert, showToast]
+    [billingPeriod, processingPlan, createInvoice, openInvoice, hapticFeedback, showToast, refreshAfterPayment, navigate]
   )
+
+  const isLoading = isUserLoading || isPlansLoading
 
   if (isLoading || !userData) {
     return (
@@ -71,6 +184,12 @@ export default function Subscription() {
 
   const { user } = userData
   const currentPlan = user.plan
+  const plans = plansData?.plans ?? []
+
+  // Find plan data
+  const standardPlan = plans.find(p => p.name === 'standard')
+  const proPlan = plans.find(p => p.name === 'pro')
+  const ultimatePlan = plans.find(p => p.name === 'ultimate')
 
   return (
     <div className="min-h-screen bg-tg-bg pb-20">
@@ -114,7 +233,7 @@ export default function Subscription() {
           <PlanCard
             plan="standard"
             name="Standard"
-            features={planFeatures.standard}
+            features={standardPlan ? getPlanFeatures(standardPlan) : planFeatures.standard}
             isCurrent={currentPlan === 'standard'}
             billingPeriod={billingPeriod}
             onSelect={() => handleSelectPlan('standard')}
@@ -123,9 +242,9 @@ export default function Subscription() {
           <PlanCard
             plan="pro"
             name="Pro"
-            priceMonthly={149}
-            priceYearly={1249}
-            features={planFeatures.pro}
+            priceMonthly={proPlan?.priceMonthly}
+            priceYearly={proPlan?.priceYearly}
+            features={proPlan ? getPlanFeatures(proPlan) : planFeatures.pro}
             isCurrent={currentPlan === 'pro'}
             isPopular={true}
             billingPeriod={billingPeriod}
@@ -135,15 +254,29 @@ export default function Subscription() {
           <PlanCard
             plan="ultimate"
             name="Ultimate"
-            priceMonthly={349}
-            priceYearly={2999}
-            features={planFeatures.ultimate}
+            priceMonthly={ultimatePlan?.priceMonthly}
+            priceYearly={ultimatePlan?.priceYearly}
+            features={ultimatePlan ? getPlanFeatures(ultimatePlan) : planFeatures.ultimate}
             isCurrent={currentPlan === 'ultimate'}
             isBestValue={true}
             billingPeriod={billingPeriod}
             onSelect={() => handleSelectPlan('ultimate')}
           />
         </div>
+
+        {/* Loading overlay when processing payment */}
+        {processingPlan && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
+          >
+            <div className="bg-surface rounded-xl p-6 flex flex-col items-center gap-4">
+              <Spinner size="lg" />
+              <p className="text-body text-tg-text">Processing payment...</p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Plan Comparison */}
         <PlanComparison />
@@ -159,10 +292,10 @@ export default function Subscription() {
             Payment Information
           </p>
           <ul className="space-y-1 text-body-sm text-tg-hint">
-            <li>• Secure payment via Telegram Stars</li>
-            <li>• Cancel anytime, no questions asked</li>
-            <li>• 7-day money-back guarantee</li>
-            <li>• Instant activation after payment</li>
+            <li>Secure payment via Telegram Stars</li>
+            <li>Cancel anytime, no questions asked</li>
+            <li>7-day money-back guarantee</li>
+            <li>Instant activation after payment</li>
           </ul>
         </motion.div>
 
@@ -173,7 +306,7 @@ export default function Subscription() {
           transition={{ delay: 0.4 }}
           className="text-body-sm text-tg-hint text-center"
         >
-          All prices are in Telegram Stars (⭐)
+          All prices are in Telegram Stars
         </motion.p>
       </div>
     </div>

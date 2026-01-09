@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 
+// Invoice status type for openInvoice callback
+export type InvoiceStatus = 'paid' | 'cancelled' | 'failed' | 'pending'
+
 // Telegram WebApp types
 interface TelegramWebApp {
   initData: string
@@ -80,6 +83,7 @@ interface TelegramWebApp {
   showConfirm: (message: string, callback?: (confirmed: boolean) => void) => void
   openLink: (url: string, options?: { try_instant_view?: boolean }) => void
   openTelegramLink: (url: string) => void
+  openInvoice: (url: string, callback?: (status: InvoiceStatus) => void) => void
 }
 
 declare global {
@@ -147,6 +151,25 @@ export function useTelegram() {
     })
   }, [webApp])
 
+  /**
+   * Open Telegram Stars payment invoice
+   * @param url - Invoice link from createInvoiceLink API
+   * @returns Promise with payment status
+   */
+  const openInvoice = useCallback((url: string): Promise<InvoiceStatus> => {
+    return new Promise((resolve) => {
+      if (!webApp?.openInvoice) {
+        // Fallback for non-Telegram environment (development)
+        console.warn('[useTelegram] openInvoice not available, simulating cancelled')
+        resolve('cancelled')
+        return
+      }
+      webApp.openInvoice(url, (status: InvoiceStatus) => {
+        resolve(status)
+      })
+    })
+  }, [webApp])
+
   return {
     webApp,
     isReady,
@@ -156,5 +179,6 @@ export function useTelegram() {
     hapticFeedback,
     showConfirm,
     showAlert,
+    openInvoice,
   }
 }

@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { userApi, watchlistApi, alertsApi, historyApi, marketApi } from '.'
-import type { CreateAlertRequest, UpdateAlertRequest, UpdateSettingsRequest, WatchlistResponse, AvailableCoinsResponse, MarketOverviewResponse, CategoryCoinsResponse } from '.'
+import { userApi, watchlistApi, alertsApi, historyApi, marketApi, paymentsApi } from '.'
+import type { CreateAlertRequest, UpdateAlertRequest, UpdateSettingsRequest, WatchlistResponse, AvailableCoinsResponse, MarketOverviewResponse, CategoryCoinsResponse, PlansResponse, PaymentHistoryResponse } from '.'
 import { offlineDB } from '@/lib/offlineDB'
-import type { Alert } from '@/types'
+import type { Alert, Plan } from '@/types'
 
 // Query keys
 export const queryKeys = {
@@ -14,6 +14,8 @@ export const queryKeys = {
   history: (limit?: number, offset?: number) => ['history', limit, offset] as const,
   market: ['market'] as const,
   categoryCoins: (categoryId: string) => ['categoryCoins', categoryId] as const,
+  plans: ['plans'] as const,
+  paymentHistory: (limit?: number, offset?: number) => ['paymentHistory', limit, offset] as const,
 }
 
 // User hooks
@@ -377,4 +379,64 @@ export function useSyncPendingMutations() {
       window.removeEventListener('online', handleOnline)
     }
   }, [queryClient])
+}
+
+// ============================================
+// Payment hooks
+// ============================================
+
+/**
+ * Fetch available subscription plans with pricing
+ * This is a public endpoint, no auth required
+ */
+export function usePlans() {
+  return useQuery({
+    queryKey: queryKeys.plans,
+    queryFn: async (): Promise<PlansResponse> => {
+      return paymentsApi.getPlans()
+    },
+    staleTime: 5 * 60_000, // 5 minutes - plans don't change often
+  })
+}
+
+/**
+ * Create an invoice for Telegram Stars payment
+ * Returns invoice link to open with Telegram.WebApp.openInvoice()
+ */
+export function useCreateInvoice() {
+  return useMutation({
+    mutationFn: ({ plan, period }: { plan: Plan; period: 'monthly' | 'yearly' }) =>
+      paymentsApi.createInvoice(plan, period),
+    onError: (error) => {
+      console.error('[Payment] Failed to create invoice:', error)
+    },
+  })
+}
+
+/**
+ * Fetch user's payment history
+ */
+export function usePaymentHistory(limit?: number, offset?: number) {
+  return useQuery({
+    queryKey: queryKeys.paymentHistory(limit, offset),
+    queryFn: async (): Promise<PaymentHistoryResponse> => {
+      return paymentsApi.getHistory(limit, offset)
+    },
+    staleTime: 60_000, // 1 minute
+  })
+}
+
+/**
+ * Helper hook to refresh user data after successful payment
+ * Call this after Telegram.WebApp.openInvoice() callback with status 'paid'
+ */
+export function useRefreshAfterPayment() {
+  const queryClient = useQueryClient()
+
+  return () => {
+    // Invalidate user data to get updated plan
+    queryClient.invalidateQueries({ queryKey: queryKeys.user })
+    // Invalidate payment history
+    queryClient.invalidateQueries({ queryKey: queryKeys.paymentHistory() })
+  }
 }

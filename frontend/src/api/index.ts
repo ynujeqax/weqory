@@ -28,6 +28,12 @@ export {
   type CategoryCoinsResponse,
 } from './market'
 export {
+  paymentsApi,
+  type PlansResponse,
+  type CreateInvoiceResponse,
+  type PaymentHistoryResponse,
+} from './payments'
+export {
   priceWebSocket,
   type PriceUpdate,
   type WebSocketMessage,
@@ -52,4 +58,8 @@ export {
   useHistory,
   useMarketOverview,
   useCategoryCoins,
+  usePlans,
+  useCreateInvoice,
+  usePaymentHistory,
+  useRefreshAfterPayment,
 } from './hooks'
