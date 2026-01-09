@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, TrendingUp, Check, Plus } from 'lucide-react'
+import { ArrowLeft, Check, Plus } from 'lucide-react'
 import { PageHeader } from '@/components/common/PageHeader'
 import { SearchBar } from '@/components/ui/SearchBar'
 import { CoinLogo } from '@/components/common/CoinLogo'
@@ -101,52 +101,27 @@ export default function AddCoinPage() {
 
 
       {/* Content */}
-      <div className="px-4 py-4">
+      <div className="px-4">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 10 }).map((_, i) => (
               <CoinSkeleton key={i} />
             ))}
           </div>
-        ) : searchResults.length > 0 ? (
-          <>
-            <h3 className="text-label text-tg-hint mb-3">
-              Search Results ({searchResults.length})
-            </h3>
-            <div className="space-y-2">
-              <AnimatePresence mode="popLayout">
-                {searchResults.map((coin) => (
-                  <CoinRow
-                    key={coin.id}
-                    coin={coin}
-                    isAdded={isInWatchlist(coin.symbol)}
-                    onToggle={() => handleToggleCoin(coin)}
-                    disabled={!canAddMore && !isInWatchlist(coin.symbol)}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          </>
-        ) : popularCoins.length > 0 ? (
-          <>
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp size={18} className="text-tg-hint" />
-              <h3 className="text-label text-tg-hint">Popular Cryptocurrencies</h3>
-            </div>
-            <div className="space-y-2">
-              <AnimatePresence mode="popLayout">
-                {popularCoins.map((coin) => (
-                  <CoinRow
-                    key={coin.id}
-                    coin={coin}
-                    isAdded={isInWatchlist(coin.symbol)}
-                    onToggle={() => handleToggleCoin(coin)}
-                    disabled={!canAddMore && !isInWatchlist(coin.symbol)}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          </>
+        ) : (searchResults.length > 0 || popularCoins.length > 0) ? (
+          <div className="space-y-2">
+            <AnimatePresence mode="popLayout">
+              {(debouncedSearch ? searchResults : popularCoins).map((coin) => (
+                <CoinRow
+                  key={coin.id}
+                  coin={coin}
+                  isAdded={isInWatchlist(coin.symbol)}
+                  onToggle={() => handleToggleCoin(coin)}
+                  disabled={!canAddMore && !isInWatchlist(coin.symbol)}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
         ) : debouncedSearch ? (
           <div className="py-16 text-center">
             <p className="text-body text-tg-hint">No results found for "{debouncedSearch}"</p>
