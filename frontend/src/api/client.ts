@@ -29,12 +29,14 @@ apiClient.interceptors.response.use(
   (error: AxiosError<{ error: string; details?: unknown }>) => {
     // Auto-logout on 401 (unauthorized/expired token)
     // Skip for auth endpoints to prevent logout loops
-    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/')) {
+    const url = error.config?.url || ''
+    const isAuthEndpoint = url.includes('/auth') || url.startsWith('auth')
+
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       const authStore = useAuthStore.getState()
       if (authStore.isAuthenticated) {
+        // Clear auth state - components will redirect via AuthGuard
         authStore.logout()
-        // Redirect to auth page
-        window.location.href = '/auth'
       }
     }
     return Promise.reject(error)
