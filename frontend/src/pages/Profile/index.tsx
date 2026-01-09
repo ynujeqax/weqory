@@ -96,7 +96,7 @@ export default function Profile() {
 
   const handleUpgrade = useCallback(() => {
     hapticFeedback('medium')
-    navigate('/profile/subscription')
+    navigate('/subscription')
   }, [navigate, hapticFeedback])
 
   if (isLoading) {
