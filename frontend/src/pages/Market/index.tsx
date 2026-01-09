@@ -9,7 +9,7 @@ import {
   CategoryCoinsList,
   type CategoryId,
 } from '@/features/market'
-import { useMarketOverview, useAvailableCoins } from '@/api/hooks'
+import { useMarketOverview } from '@/api/hooks'
 
 export default function MarketPage() {
   // Category filter state - DeFi selected by default
@@ -18,10 +18,7 @@ export default function MarketPage() {
   // Data fetching - use market overview which includes top_coins with price data
   const { data: marketOverview, isLoading } = useMarketOverview()
 
-  // Fetch all coins for category filtering (no search term, higher limit)
-  const { data: coinsData } = useAvailableCoins(undefined, 500)
-
-  // Use top_coins from market overview for gainers/losers (they have price change data)
+  // Use top_coins from market overview (they have price change data)
   const validCoins = useMemo(() => {
     if (!marketOverview?.top_coins) return []
     return marketOverview.top_coins.filter(
@@ -91,10 +88,10 @@ export default function MarketPage() {
         />
 
         {/* Category Coins List */}
-        {coinsData?.coins && coinsData.coins.length > 0 && (
+        {marketOverview?.top_coins && marketOverview.top_coins.length > 0 && (
           <CategoryCoinsList
             categoryId={selectedCategory}
-            coins={coinsData.coins}
+            coins={marketOverview.top_coins}
           />
         )}
       </div>
