@@ -94,7 +94,7 @@ export default function AddCoinPage() {
         />
 
         {/* Search */}
-        <div className="px-4 pb-4">
+        <div className="px-4 pt-[68px] pb-4">
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
