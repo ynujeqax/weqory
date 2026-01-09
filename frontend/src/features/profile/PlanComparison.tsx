@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils'
 const features = [
   { name: 'Coins in Watchlist', standard: '3', pro: '9', ultimate: '27' },
   { name: 'Active Alerts', standard: '6', pro: '18', ultimate: '54' },
-  { name: 'Notifications/Month', standard: '18', pro: '162', ultimate: 'Unlimited' },
-  { name: 'History Retention', standard: '24 hours', pro: '7 days', ultimate: '30 days' },
+  { name: 'Notifications/Month', standard: '18', pro: '162', ultimate: '∞' },
+  { name: 'History Retention', standard: '24h', pro: '7d', ultimate: '30d' },
   { name: 'Real-time Price Updates', standard: '✓', pro: '✓', ultimate: '✓' },
   { name: 'Advanced Alert Types', standard: '✗', pro: '✓', ultimate: '✓' },
   { name: 'Priority Support', standard: '✗', pro: '✗', ultimate: '✓' },

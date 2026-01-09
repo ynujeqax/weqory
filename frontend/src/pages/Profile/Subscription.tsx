@@ -18,22 +18,22 @@ const planFeatures: Record<Plan, string[]> = {
     '3 coins in watchlist',
     '6 active alerts',
     '18 notifications/month',
-    '24 hours history',
+    '24h history',
     'Real-time price updates',
   ],
   pro: [
     '9 coins in watchlist',
     '18 active alerts',
     '162 notifications/month',
-    '7 days history',
+    '7d history',
     'Real-time price updates',
     'Advanced alert types',
   ],
   ultimate: [
     '27 coins in watchlist',
     '54 active alerts',
-    'Unlimited notifications',
-    '30 days history',
+    '∞ notifications',
+    '30d history',
     'Real-time price updates',
     'Advanced alert types',
     'Priority support',
@@ -60,18 +60,18 @@ function getPlanFeatures(plan: { name: Plan; maxCoins: number; maxAlerts: number
 
   // Notifications
   if (plan.maxNotifications === null) {
-    features.push('Unlimited notifications')
+    features.push('∞ notifications')
   } else {
     features.push(`${plan.maxNotifications} notifications/month`)
   }
 
   // History
   if (plan.historyRetentionDays >= 365) {
-    features.push('Unlimited history')
+    features.push('∞ history')
   } else if (plan.historyRetentionDays === 1) {
-    features.push('24 hours history')
+    features.push('24h history')
   } else {
-    features.push(`${plan.historyRetentionDays} days history`)
+    features.push(`${plan.historyRetentionDays}d history`)
   }
 
   // Common features
