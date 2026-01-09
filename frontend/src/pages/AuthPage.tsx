@@ -33,8 +33,11 @@ export default function AuthPage() {
 
       const { user, token: authToken } = response.data
 
-      setUser(user)
+      // IMPORTANT: Set token BEFORE user to avoid race condition
+      // setUser sets isAuthenticated: true, which triggers queries
+      // Token must be available when those queries fire
       setToken(authToken)
+      setUser(user)
       if (user.limits) {
         setLimits(user.limits)
       }
