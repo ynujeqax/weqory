@@ -141,8 +141,8 @@ func (s *UserService) GetWithLimits(ctx context.Context, userID int64) (*UserWit
 			u.notifications_enabled, u.vibration_enabled,
 			u.created_at, u.updated_at, u.last_active_at,
 			sp.max_coins, sp.max_alerts, sp.max_notifications, sp.history_retention_days,
-			(SELECT COUNT(*) FROM watchlist WHERE user_id = u.id) as coins_used,
-			(SELECT COUNT(*) FROM alerts WHERE user_id = u.id) as alerts_used
+			(SELECT COUNT(*) FROM watchlist w WHERE w.user_id = u.id AND EXISTS (SELECT 1 FROM coins c WHERE c.id = w.coin_id)) as coins_used,
+			(SELECT COUNT(*) FROM alerts a WHERE a.user_id = u.id AND EXISTS (SELECT 1 FROM coins c WHERE c.id = a.coin_id)) as alerts_used
 		FROM users u
 		JOIN subscription_plans sp ON sp.name = u.plan
 		WHERE u.id = $1

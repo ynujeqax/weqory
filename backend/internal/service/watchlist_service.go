@@ -50,6 +50,9 @@ type WatchlistItem struct {
 
 // GetByUserID retrieves user's watchlist
 func (s *WatchlistService) GetByUserID(ctx context.Context, userID int64) ([]WatchlistItem, error) {
+	// Cleanup orphaned entries first
+	_ = s.CleanupOrphanedEntries(ctx, userID)
+
 	query := `
 		SELECT
 			w.id, w.user_id, w.coin_id, w.created_at,
@@ -318,6 +321,29 @@ func (s *WatchlistService) GetCoinsBySymbols(ctx context.Context, symbols []stri
 	}
 
 	return coins, nil
+}
+
+// CleanupOrphanedEntries removes watchlist and alert entries referencing non-existent coins
+func (s *WatchlistService) CleanupOrphanedEntries(ctx context.Context, userID int64) error {
+	// Delete alerts referencing non-existent coins
+	_, err := s.pool.Exec(ctx, `
+		DELETE FROM alerts
+		WHERE user_id = $1 AND NOT EXISTS (SELECT 1 FROM coins WHERE id = alerts.coin_id)
+	`, userID)
+	if err != nil {
+		return errors.Wrap(err, errors.ErrDatabase)
+	}
+
+	// Delete watchlist entries referencing non-existent coins
+	_, err = s.pool.Exec(ctx, `
+		DELETE FROM watchlist
+		WHERE user_id = $1 AND NOT EXISTS (SELECT 1 FROM coins WHERE id = watchlist.coin_id)
+	`, userID)
+	if err != nil {
+		return errors.Wrap(err, errors.ErrDatabase)
+	}
+
+	return nil
 }
 
 // DeleteAllByUser deletes all watchlist items for a user
