@@ -1,22 +1,28 @@
 import { motion } from 'framer-motion'
 import { Landmark, Layers, Dog, Gamepad2, Brain } from 'lucide-react'
 import { LucideIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+export type CategoryId = 'defi' | 'layer1' | 'meme' | 'gaming' | 'ai'
 
 interface Category {
-  id: string
+  id: CategoryId
   name: string
   icon: LucideIcon
   gradientFrom: string
   gradientTo: string
+  // Coin symbols in this category
+  symbols: string[]
 }
 
-const categories: Category[] = [
+export const categories: Category[] = [
   {
     id: 'defi',
     name: 'DeFi',
     icon: Landmark,
     gradientFrom: '#667eea',
     gradientTo: '#764ba2',
+    symbols: ['UNI', 'AAVE', 'CAKE', 'SUSHI', 'CRV', 'COMP', 'MKR', 'SNX', 'YFI', 'LDO', 'DYDX', 'GMX', '1INCH', 'BAL', 'RUNE', 'INJ', 'PENDLE', 'JUP', 'RAY', 'ORCA'],
   },
   {
     id: 'layer1',
@@ -24,6 +30,7 @@ const categories: Category[] = [
     icon: Layers,
     gradientFrom: '#06b6d4',
     gradientTo: '#0891b2',
+    symbols: ['BTC', 'ETH', 'SOL', 'ADA', 'AVAX', 'DOT', 'NEAR', 'ATOM', 'FTM', 'ALGO', 'HBAR', 'ICP', 'APT', 'SUI', 'SEI', 'TIA', 'INJ', 'KAS', 'TON', 'TRX'],
   },
   {
     id: 'meme',
@@ -31,6 +38,7 @@ const categories: Category[] = [
     icon: Dog,
     gradientFrom: '#f97316',
     gradientTo: '#facc15',
+    symbols: ['DOGE', 'SHIB', 'PEPE', 'FLOKI', 'BONK', 'WIF', 'MEME', 'ELON', 'BABYDOGE', 'SNEK', 'MYRO', 'BOME', 'BRETT', 'MOG', 'POPCAT', 'NEIRO', 'TURBO', 'LADYS', 'WOJAK', 'MONG'],
   },
   {
     id: 'gaming',
@@ -38,6 +46,7 @@ const categories: Category[] = [
     icon: Gamepad2,
     gradientFrom: '#ec4899',
     gradientTo: '#8b5cf6',
+    symbols: ['AXS', 'SAND', 'MANA', 'GALA', 'ENJ', 'IMX', 'ILV', 'GODS', 'ALICE', 'YGG', 'MAGIC', 'PRIME', 'PIXEL', 'PORTAL', 'BEAM', 'RONIN', 'SUPER', 'PYR', 'WEMIX', 'GMT'],
   },
   {
     id: 'ai',
@@ -45,15 +54,16 @@ const categories: Category[] = [
     icon: Brain,
     gradientFrom: '#10b981',
     gradientTo: '#059669',
+    symbols: ['FET', 'AGIX', 'OCEAN', 'RNDR', 'TAO', 'ARKM', 'WLD', 'AI', 'NMR', 'CTXC', 'GRT', 'ORAI', 'AIOZ', 'PHB', 'RSS3', 'ALI', 'VIDT', 'NFP', 'IO', 'ATH'],
   },
 ]
 
-export function CategoriesSection() {
-  const handleCategoryClick = (categoryId: string) => {
-    // TODO: Navigate to category page or filter coins
-    console.log('Category clicked:', categoryId)
-  }
+interface CategoriesSectionProps {
+  selectedCategory: CategoryId
+  onSelectCategory: (category: CategoryId) => void
+}
 
+export function CategoriesSection({ selectedCategory, onSelectCategory }: CategoriesSectionProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -75,7 +85,8 @@ export function CategoriesSection() {
               key={category.id}
               category={category}
               index={index}
-              onClick={() => handleCategoryClick(category.id)}
+              isSelected={selectedCategory === category.id}
+              onClick={() => onSelectCategory(category.id)}
             />
           ))}
         </div>
@@ -87,7 +98,8 @@ export function CategoriesSection() {
               key={category.id}
               category={category}
               index={index + 3}
-              onClick={() => handleCategoryClick(category.id)}
+              isSelected={selectedCategory === category.id}
+              onClick={() => onSelectCategory(category.id)}
             />
           ))}
         </div>
@@ -99,10 +111,11 @@ export function CategoriesSection() {
 interface CategoryCardProps {
   category: Category
   index: number
+  isSelected: boolean
   onClick: () => void
 }
 
-function CategoryCard({ category, index, onClick }: CategoryCardProps) {
+function CategoryCard({ category, index, isSelected, onClick }: CategoryCardProps) {
   const Icon = category.icon
 
   return (
@@ -115,15 +128,24 @@ function CategoryCard({ category, index, onClick }: CategoryCardProps) {
       }}
       whileTap={{ scale: 0.96 }}
       onClick={onClick}
-      className="h-[72px] rounded-xl overflow-hidden relative group active:opacity-90"
+      className={cn(
+        'h-[72px] rounded-xl overflow-hidden relative group active:opacity-90 transition-all duration-200',
+        isSelected && 'ring-2 ring-white ring-offset-2 ring-offset-[#1C1C1E]'
+      )}
       style={{
-        background: `linear-gradient(135deg, ${category.gradientFrom} 0%, ${category.gradientTo} 100%)`,
+        background: isSelected
+          ? `linear-gradient(135deg, ${category.gradientFrom} 0%, ${category.gradientTo} 100%)`
+          : `linear-gradient(135deg, ${category.gradientFrom}80 0%, ${category.gradientTo}80 100%)`,
+        opacity: isSelected ? 1 : 0.7,
       }}
     >
       {/* Content Container */}
       <div className="relative h-full flex items-center justify-center gap-2 px-3">
         {/* Icon */}
-        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+        <div className={cn(
+          'w-8 h-8 rounded-full flex items-center justify-center',
+          isSelected ? 'bg-white/30' : 'bg-white/20'
+        )}>
           <Icon size={18} className="text-white" strokeWidth={2.5} />
         </div>
 
@@ -133,11 +155,15 @@ function CategoryCard({ category, index, onClick }: CategoryCardProps) {
         </h3>
       </div>
 
-      {/* Hover/Active Overlay */}
-      <div
-        className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-200"
-        aria-hidden="true"
-      />
+      {/* Active indicator */}
+      {isSelected && (
+        <motion.div
+          layoutId="categoryIndicator"
+          className="absolute inset-0 border-2 border-white/30 rounded-xl"
+          initial={false}
+          transition={{ duration: 0.2 }}
+        />
+      )}
     </motion.button>
   )
 }

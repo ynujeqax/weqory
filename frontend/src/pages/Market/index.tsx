@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { PageHeader } from '@/components/common/PageHeader'
 import {
   MarketCapCard,
@@ -6,12 +6,20 @@ import {
   FearGreedGauge,
   GainersLosersTable,
   CategoriesSection,
+  CategoryCoinsList,
+  type CategoryId,
 } from '@/features/market'
-import { useMarketOverview } from '@/api/hooks'
+import { useMarketOverview, useAvailableCoins } from '@/api/hooks'
 
 export default function MarketPage() {
+  // Category filter state - DeFi selected by default
+  const [selectedCategory, setSelectedCategory] = useState<CategoryId>('defi')
+
   // Data fetching - use market overview which includes top_coins with price data
   const { data: marketOverview, isLoading } = useMarketOverview()
+
+  // Fetch all coins for category filtering (no search term, higher limit)
+  const { data: coinsData } = useAvailableCoins(undefined, 500)
 
   // Use top_coins from market overview for gainers/losers (they have price change data)
   const validCoins = useMemo(() => {
@@ -77,7 +85,18 @@ export default function MarketPage() {
         )}
 
         {/* Categories Section */}
-        <CategoriesSection />
+        <CategoriesSection
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
+
+        {/* Category Coins List */}
+        {coinsData?.coins && coinsData.coins.length > 0 && (
+          <CategoryCoinsList
+            categoryId={selectedCategory}
+            coins={coinsData.coins}
+          />
+        )}
       </div>
     </div>
   )
