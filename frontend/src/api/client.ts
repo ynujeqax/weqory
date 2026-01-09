@@ -11,12 +11,15 @@ export const apiClient: AxiosInstance = axios.create({
   timeout: 30000,
 })
 
-// Request interceptor to add auth token
+// Request interceptor to add Telegram InitData header
+// Backend validates InitData on every request, not JWT tokens
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = useAuthStore.getState().token
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    // Get Telegram initData directly from WebApp
+    // This is available throughout the app session
+    const initData = window.Telegram?.WebApp?.initData
+    if (initData) {
+      config.headers['X-Telegram-Init-Data'] = initData
     }
     return config
   },
@@ -27,24 +30,23 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ error: string; details?: unknown }>) => {
-    // Auto-logout on 401 (unauthorized/expired token)
+    // Auto-logout on 401 (unauthorized/expired initData)
     // Skip for auth endpoints to prevent logout loops
     const url = error.config?.url || ''
     const isAuthEndpoint = url.includes('/auth') || url.startsWith('auth')
 
     if (error.response?.status === 401 && !isAuthEndpoint) {
       const authStore = useAuthStore.getState()
-      const currentToken = authStore.token
 
-      // Get the token that was used in the failed request
-      const requestAuthHeader = error.config?.headers?.Authorization as string | undefined
-      const requestToken = requestAuthHeader?.replace('Bearer ', '')
+      // Get the initData that was used in the failed request
+      const requestInitData = error.config?.headers?.['X-Telegram-Init-Data'] as string | undefined
+      const currentInitData = window.Telegram?.WebApp?.initData
 
       // Only logout if:
       // 1. User is authenticated
-      // 2. The request was made with the current token (not a stale request)
-      // If request had no token or different token, it's a stale request - don't logout
-      if (authStore.isAuthenticated && currentToken && requestToken === currentToken) {
+      // 2. The request was made with the current initData (not a stale request)
+      // If request had no initData or different initData, don't logout
+      if (authStore.isAuthenticated && currentInitData && requestInitData === currentInitData) {
         // Clear auth state - components will redirect via AuthGuard
         authStore.logout()
       }
