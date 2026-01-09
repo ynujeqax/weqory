@@ -33,8 +33,8 @@ func NewMarketHandler(watchlistService *service.WatchlistService) *MarketHandler
 func (h *MarketHandler) GetMarketOverview(c *fiber.Ctx) error {
 	ctx := c.Context()
 
-	// Get top coins from database
-	topCoins, err := h.watchlistService.GetAvailableCoins(ctx, "", 10)
+	// Get top coins from database (100 to have enough for top 20 gainers/losers)
+	topCoins, err := h.watchlistService.GetAvailableCoins(ctx, "", 100)
 	if err != nil {
 		return sendError(c, err)
 	}
