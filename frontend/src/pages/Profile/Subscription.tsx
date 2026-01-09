@@ -15,25 +15,25 @@ import type { Plan } from '@/types'
 // Fallback features if API doesn't return them
 const planFeatures: Record<Plan, string[]> = {
   standard: [
-    '10 coins in watchlist',
-    '5 active alerts',
-    '100 notifications/month',
-    '7 days history',
+    '3 coins in watchlist',
+    '6 active alerts',
+    '18 notifications/month',
+    '24 hours history',
     'Real-time price updates',
   ],
   pro: [
-    '50 coins in watchlist',
-    '25 active alerts',
-    '500 notifications/month',
-    '30 days history',
+    '9 coins in watchlist',
+    '18 active alerts',
+    '162 notifications/month',
+    '7 days history',
     'Real-time price updates',
     'Advanced alert types',
   ],
   ultimate: [
-    'Unlimited coins',
-    'Unlimited alerts',
+    '27 coins in watchlist',
+    '54 active alerts',
     'Unlimited notifications',
-    'Unlimited history',
+    '30 days history',
     'Real-time price updates',
     'Advanced alert types',
     'Priority support',
@@ -68,6 +68,8 @@ function getPlanFeatures(plan: { name: Plan; maxCoins: number; maxAlerts: number
   // History
   if (plan.historyRetentionDays >= 365) {
     features.push('Unlimited history')
+  } else if (plan.historyRetentionDays === 1) {
+    features.push('24 hours history')
   } else {
     features.push(`${plan.historyRetentionDays} days history`)
   }

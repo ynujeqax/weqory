@@ -4,10 +4,10 @@ import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const features = [
-  { name: 'Coins in Watchlist', standard: '10', pro: '50', ultimate: 'Unlimited' },
-  { name: 'Active Alerts', standard: '5', pro: '25', ultimate: 'Unlimited' },
-  { name: 'Notifications/Month', standard: '100', pro: '500', ultimate: 'Unlimited' },
-  { name: 'History Retention', standard: '7 days', pro: '30 days', ultimate: 'Unlimited' },
+  { name: 'Coins in Watchlist', standard: '3', pro: '9', ultimate: '27' },
+  { name: 'Active Alerts', standard: '6', pro: '18', ultimate: '54' },
+  { name: 'Notifications/Month', standard: '18', pro: '162', ultimate: 'Unlimited' },
+  { name: 'History Retention', standard: '24 hours', pro: '7 days', ultimate: '30 days' },
   { name: 'Real-time Price Updates', standard: '✓', pro: '✓', ultimate: '✓' },
   { name: 'Advanced Alert Types', standard: '✗', pro: '✓', ultimate: '✓' },
   { name: 'Priority Support', standard: '✗', pro: '✗', ultimate: '✓' },
