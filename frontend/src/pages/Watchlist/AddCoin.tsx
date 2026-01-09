@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Check, Plus } from 'lucide-react'
@@ -45,17 +45,8 @@ export default function AddCoinPage() {
   const limits = user?.limits
   const canAddMore = limits ? limits.coinsUsed < limits.maxCoins : true
 
-  // Popular coins (top 20 if no search)
-  const popularCoins = useMemo(() => {
-    if (debouncedSearch) return []
-    return availableCoins?.coins.slice(0, 20) ?? []
-  }, [availableCoins, debouncedSearch])
-
-  // Search results
-  const searchResults = useMemo(() => {
-    if (!debouncedSearch) return []
-    return availableCoins?.coins ?? []
-  }, [availableCoins, debouncedSearch])
+  // All coins (top 100 by market cap, or search results)
+  const coins = availableCoins?.coins ?? []
 
   const handleBack = () => {
     navigate(-1)
@@ -106,10 +97,10 @@ export default function AddCoinPage() {
               <CoinSkeleton key={i} />
             ))}
           </div>
-        ) : (searchResults.length > 0 || popularCoins.length > 0) ? (
+        ) : coins.length > 0 ? (
           <div className="space-y-2">
             <AnimatePresence mode="popLayout">
-              {(debouncedSearch ? searchResults : popularCoins).map((coin) => (
+              {coins.map((coin) => (
                 <CoinRow
                   key={coin.id}
                   coin={coin}
