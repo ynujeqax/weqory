@@ -82,55 +82,52 @@ export default function AddCoinPage() {
   }
 
   return (
-    <div className="min-h-screen pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-tg-bg border-b border-white/5">
-        <PageHeader
-          title="Add Coin"
-          leftAction={{
-            icon: <ArrowLeft size={20} />,
-            onClick: handleBack,
-          }}
+    <div className="pb-20">
+      <PageHeader
+        title="Add Coin"
+        leftAction={{
+          icon: <ArrowLeft size={20} />,
+          onClick: handleBack,
+        }}
+      />
+
+      {/* Search */}
+      <div className="px-4 py-3">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search cryptocurrencies..."
         />
+      </div>
 
-        {/* Search */}
-        <div className="px-4 pt-[68px] pb-4">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search cryptocurrencies..."
-          />
-        </div>
-
-        {/* Limit Warning */}
-        {!canAddMore && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mx-4 mb-4 p-3 bg-warning/10 border border-warning/20 rounded-lg flex items-start gap-3"
-          >
-            <AlertCircle size={20} className="text-warning flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-body-sm text-tg-text font-medium mb-1">
-                Watchlist Limit Reached
-              </p>
-              <p className="text-body-sm text-tg-hint">
-                You've reached the maximum of {limits?.maxCoins} coins for your plan.
-                Upgrade to add more.
-              </p>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Remaining Counter */}
-        {canAddMore && limits && (
-          <div className="px-4 pb-4">
-            <p className="text-body-sm text-tg-hint text-center">
-              {coinsRemaining} {coinsRemaining === 1 ? 'slot' : 'slots'} remaining
+      {/* Limit Warning */}
+      {!canAddMore && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 mb-4 p-3 bg-warning/10 border border-warning/20 rounded-lg flex items-start gap-3"
+        >
+          <AlertCircle size={20} className="text-warning flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-body-sm text-tg-text font-medium mb-1">
+              Watchlist Limit Reached
+            </p>
+            <p className="text-body-sm text-tg-hint">
+              You've reached the maximum of {limits?.maxCoins} coins for your plan.
+              Upgrade to add more.
             </p>
           </div>
-        )}
-      </div>
+        </motion.div>
+      )}
+
+      {/* Remaining Counter */}
+      {canAddMore && limits && (
+        <div className="px-4 pb-3">
+          <p className="text-body-sm text-tg-hint text-center">
+            {coinsRemaining} {coinsRemaining === 1 ? 'slot' : 'slots'} remaining
+          </p>
+        </div>
+      )}
 
       {/* Content */}
       <div className="px-4 py-4">
