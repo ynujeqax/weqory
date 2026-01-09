@@ -209,7 +209,7 @@ export default function Subscription() {
       />
 
       {/* Billing Period Toggle */}
-      <div className="px-4 pt-[68px] pb-3">
+      <div className="px-4 pt-14 pb-3">
         <Tabs
           tabs={[
             { id: 'monthly', label: 'Monthly' },
