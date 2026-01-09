@@ -78,7 +78,7 @@ export function useDeleteHistory() {
 }
 
 // Watchlist hooks with offline support
-export function useWatchlist() {
+export function useWatchlist(options?: { enabled?: boolean }) {
   const query = useQuery({
     queryKey: queryKeys.watchlist,
     queryFn: async (): Promise<WatchlistResponse> => {
@@ -99,6 +99,7 @@ export function useWatchlist() {
       }
     },
     staleTime: 30_000, // 30 seconds
+    enabled: options?.enabled ?? true,
   })
 
   return query

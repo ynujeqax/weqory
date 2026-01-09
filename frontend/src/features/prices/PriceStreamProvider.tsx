@@ -16,9 +16,10 @@ interface PriceStreamProviderProps {
 }
 
 export function PriceStreamProvider({ children }: PriceStreamProviderProps) {
-  const { token } = useAuthStore()
+  const { token, isAuthenticated } = useAuthStore()
   const { updatePrice, setConnectionStatus, clearPrices } = usePricesStore()
-  const { data: watchlist } = useWatchlist()
+  // Only fetch watchlist when authenticated to avoid 401 errors
+  const { data: watchlist } = useWatchlist({ enabled: isAuthenticated })
 
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
