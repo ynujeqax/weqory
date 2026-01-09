@@ -103,6 +103,7 @@ func setupPublicRoutes(router fiber.Router, cfg *Config) {
 	// Public market routes (same data for all users)
 	market := router.Group("/market")
 	market.Get("/overview", cfg.Handlers.Market.GetMarketOverview)
+	market.Get("/category/:id", cfg.Handlers.Market.GetCategoryCoins)
 
 	// Public coins list (for market page)
 	router.Get("/coins", cfg.Handlers.Watchlist.GetAvailableCoins)

@@ -8,6 +8,7 @@ import type { Coin } from '@/types'
 interface CategoryCoinsListProps {
   categoryId: CategoryId
   coins: Coin[]
+  isLoading?: boolean
 }
 
 // Format price with appropriate precision
@@ -39,23 +40,11 @@ function formatMarketCap(marketCap: number | undefined): string {
   return `$${marketCap.toLocaleString()}`
 }
 
-export function CategoryCoinsList({ categoryId, coins }: CategoryCoinsListProps) {
-  // Get the selected category
+export function CategoryCoinsList({ categoryId, coins, isLoading }: CategoryCoinsListProps) {
+  // Get the selected category for display name
   const category = useMemo(() => {
     return categories.find(c => c.id === categoryId)
   }, [categoryId])
-
-  // Filter coins by category symbols and sort by market cap
-  const filteredCoins = useMemo(() => {
-    if (!category) return []
-
-    const categorySymbols = new Set(category.symbols.map(s => s.toUpperCase()))
-
-    return coins
-      .filter(coin => categorySymbols.has(coin.symbol.toUpperCase()))
-      .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
-      .slice(0, 20)
-  }, [coins, category])
 
   if (!category) return null
 
@@ -72,7 +61,7 @@ export function CategoryCoinsList({ categoryId, coins }: CategoryCoinsListProps)
           Top {category.name} Coins
         </h2>
         <span className="text-body-sm text-tg-hint">
-          {filteredCoins.length} coins
+          {isLoading ? '...' : `${coins.length} coins`}
         </span>
       </div>
 
@@ -83,7 +72,26 @@ export function CategoryCoinsList({ categoryId, coins }: CategoryCoinsListProps)
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
         }}
       >
-        {filteredCoins.length === 0 ? (
+        {isLoading ? (
+          // Loading skeleton
+          <div className="divide-y divide-white/5">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="px-4 py-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-5 h-4 bg-white/10 rounded animate-pulse" />
+                  <div className="flex-1">
+                    <div className="w-20 h-4 bg-white/10 rounded animate-pulse mb-1" />
+                    <div className="w-16 h-3 bg-white/10 rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  <div className="w-16 h-4 bg-white/10 rounded animate-pulse mb-1" />
+                  <div className="w-12 h-3 bg-white/10 rounded animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : coins.length === 0 ? (
           <div className="px-4 py-12 text-center">
             <p className="text-body text-tg-hint">
               No coins found in this category
@@ -91,12 +99,12 @@ export function CategoryCoinsList({ categoryId, coins }: CategoryCoinsListProps)
           </div>
         ) : (
           <div className="divide-y divide-white/5">
-            {filteredCoins.map((coin, index) => (
+            {coins.map((coin, index) => (
               <motion.div
                 key={coin.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.35 + index * 0.02 }}
+                transition={{ duration: 0.3, delay: index * 0.02 }}
                 className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-white/5 transition-colors"
               >
                 {/* Left: Rank + Symbol + Name */}

@@ -56,6 +56,17 @@ function mapCoin(coin: CoinApiResponse): Coin {
   }
 }
 
+// Category coins response
+interface CategoryCoinsApiResponse {
+  category: string
+  coins: CoinApiResponse[]
+}
+
+export interface CategoryCoinsResponse {
+  category: string
+  coins: Coin[]
+}
+
 export const marketApi = {
   async getOverview(): Promise<MarketOverviewResponse> {
     const response = await apiClient.get<MarketOverviewApiResponse>('/market/overview')
@@ -64,6 +75,16 @@ export const marketApi = {
     return {
       ...data,
       top_coins: data.top_coins?.map(mapCoin) ?? [],
+    }
+  },
+
+  async getCategoryCoins(categoryId: string): Promise<CategoryCoinsResponse> {
+    const response = await apiClient.get<CategoryCoinsApiResponse>(`/market/category/${categoryId}`)
+    const data = response.data
+
+    return {
+      category: data.category,
+      coins: data.coins?.map(mapCoin) ?? [],
     }
   },
 }

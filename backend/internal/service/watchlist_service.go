@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -241,6 +242,57 @@ func (s *WatchlistService) GetAvailableCoins(ctx context.Context, search string,
 		`
 		args = []interface{}{limit}
 	}
+
+	rows, err := s.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, errors.ErrDatabase)
+	}
+	defer rows.Close()
+
+	var coins []Coin
+	for rows.Next() {
+		var coin Coin
+		err := rows.Scan(
+			&coin.ID, &coin.Symbol, &coin.Name, &coin.BinanceSymbol, &coin.Rank,
+			&coin.CurrentPrice, &coin.MarketCap, &coin.Volume24h, &coin.PriceChange24hPct,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, errors.ErrDatabase)
+		}
+		coins = append(coins, coin)
+	}
+
+	if coins == nil {
+		coins = []Coin{}
+	}
+
+	return coins, nil
+}
+
+// GetCoinsBySymbols returns coins by their symbols with price data
+func (s *WatchlistService) GetCoinsBySymbols(ctx context.Context, symbols []string, limit int) ([]Coin, error) {
+	if len(symbols) == 0 {
+		return []Coin{}, nil
+	}
+
+	// Build placeholders for IN clause
+	placeholders := make([]string, len(symbols))
+	args := make([]interface{}, len(symbols)+1)
+	for i, sym := range symbols {
+		placeholders[i] = "$" + strconv.Itoa(i+1)
+		args[i] = strings.ToUpper(sym)
+	}
+	args[len(symbols)] = limit
+
+	query := `
+		SELECT id, symbol, name, binance_symbol, rank_by_market_cap,
+		       current_price, market_cap, volume_24h, price_change_24h_pct
+		FROM coins
+		WHERE is_stablecoin = false
+		  AND UPPER(symbol) IN (` + strings.Join(placeholders, ", ") + `)
+		ORDER BY market_cap DESC NULLS LAST
+		LIMIT $` + strconv.Itoa(len(symbols)+1) + `
+	`
 
 	rows, err := s.pool.Query(ctx, query, args...)
 	if err != nil {

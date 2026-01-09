@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { userApi, watchlistApi, alertsApi, historyApi, marketApi } from '.'
-import type { CreateAlertRequest, UpdateAlertRequest, UpdateSettingsRequest, WatchlistResponse, AvailableCoinsResponse, MarketOverviewResponse } from '.'
+import type { CreateAlertRequest, UpdateAlertRequest, UpdateSettingsRequest, WatchlistResponse, AvailableCoinsResponse, MarketOverviewResponse, CategoryCoinsResponse } from '.'
 import { offlineDB } from '@/lib/offlineDB'
 import type { Alert } from '@/types'
 
@@ -13,6 +13,7 @@ export const queryKeys = {
   alerts: ['alerts'] as const,
   history: (limit?: number, offset?: number) => ['history', limit, offset] as const,
   market: ['market'] as const,
+  categoryCoins: (categoryId: string) => ['categoryCoins', categoryId] as const,
 }
 
 // User hooks
@@ -311,6 +312,19 @@ export function useMarketOverview() {
   })
 
   return query
+}
+
+// Category coins hook
+export function useCategoryCoins(categoryId: string) {
+  return useQuery({
+    queryKey: queryKeys.categoryCoins(categoryId),
+    queryFn: async (): Promise<CategoryCoinsResponse> => {
+      const data = await marketApi.getCategoryCoins(categoryId)
+      return data
+    },
+    staleTime: 60_000, // 1 minute
+    enabled: !!categoryId,
+  })
 }
 
 // Hook to sync pending mutations when back online

@@ -25,6 +25,7 @@ export {
   marketApi,
   type FearGreedIndex,
   type MarketOverviewResponse,
+  type CategoryCoinsResponse,
 } from './market'
 export {
   priceWebSocket,
@@ -50,4 +51,5 @@ export {
   useDeleteAlert,
   useHistory,
   useMarketOverview,
+  useCategoryCoins,
 } from './hooks'

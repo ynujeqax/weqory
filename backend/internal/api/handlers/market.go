@@ -87,6 +87,42 @@ func (h *MarketHandler) GetMarketOverview(c *fiber.Ctx) error {
 	})
 }
 
+// Category symbols for filtering
+var categorySymbols = map[string][]string{
+	"defi":   {"UNI", "AAVE", "CAKE", "SUSHI", "CRV", "COMP", "MKR", "SNX", "YFI", "LDO", "DYDX", "GMX", "1INCH", "BAL", "RUNE", "INJ", "PENDLE", "JUP", "RAY", "ORCA"},
+	"layer1": {"BTC", "ETH", "SOL", "ADA", "AVAX", "DOT", "NEAR", "ATOM", "FTM", "ALGO", "HBAR", "ICP", "APT", "SUI", "SEI", "TIA", "INJ", "KAS", "TON", "TRX"},
+	"meme":   {"DOGE", "SHIB", "PEPE", "FLOKI", "BONK", "WIF", "MEME", "ELON", "BABYDOGE", "SNEK", "MYRO", "BOME", "BRETT", "MOG", "POPCAT", "NEIRO", "TURBO", "LADYS", "WOJAK", "MONG"},
+	"gaming": {"AXS", "SAND", "MANA", "GALA", "ENJ", "IMX", "ILV", "GODS", "ALICE", "YGG", "MAGIC", "PRIME", "PIXEL", "PORTAL", "BEAM", "RONIN", "SUPER", "PYR", "WEMIX", "GMT"},
+	"ai":     {"FET", "AGIX", "OCEAN", "RNDR", "TAO", "ARKM", "WLD", "AI", "NMR", "CTXC", "GRT", "ORAI", "AIOZ", "PHB", "RSS3", "ALI", "VIDT", "NFP", "IO", "ATH"},
+}
+
+// GetCategoryCoins handles GET /api/v1/market/category/:id
+func (h *MarketHandler) GetCategoryCoins(c *fiber.Ctx) error {
+	ctx := c.Context()
+	categoryID := c.Params("id")
+
+	symbols, ok := categorySymbols[categoryID]
+	if !ok {
+		return sendError(c, errors.ErrInvalidInput.WithMessage("Invalid category ID"))
+	}
+
+	coins, err := h.watchlistService.GetCoinsBySymbols(ctx, symbols, 20)
+	if err != nil {
+		return sendError(c, err)
+	}
+
+	// Convert to response
+	coinResponses := make([]dto.CoinResponse, len(coins))
+	for i, coin := range coins {
+		coinResponses[i] = *toCoinResponse(&coin)
+	}
+
+	return c.JSON(fiber.Map{
+		"category": categoryID,
+		"coins":    coinResponses,
+	})
+}
+
 // fetchFearGreedIndex fetches the Fear & Greed Index from alternative.me API
 func (h *MarketHandler) fetchFearGreedIndex(ctx context.Context) (*dto.FearGreedResponse, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", "https://api.alternative.me/fng/?limit=1", nil)
