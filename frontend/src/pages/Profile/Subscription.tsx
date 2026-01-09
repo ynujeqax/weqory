@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useUser, usePlans, useCreateInvoice, useRefreshAfterPayment } from '@/api/hooks'
 import { useTelegram } from '@/hooks/useTelegram'
 import { useToast } from '@/hooks/useToast'
+import { PageHeader } from '@/components/common/PageHeader'
 import { Tabs } from '@/components/ui/Tabs'
 import { Spinner } from '@/components/ui/Spinner'
 import { PlanCard } from '@/features/profile/PlanCard'
@@ -194,25 +195,19 @@ export default function Subscription() {
   return (
     <div className="min-h-screen bg-tg-bg pb-20">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-10 bg-tg-bg/80 backdrop-blur-sm border-b border-white/5 px-4 py-4"
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <button
-            onClick={() => {
-              hapticFeedback('light')
-              navigate('/profile')
-            }}
-            className="p-2 -ml-2 rounded-lg hover:bg-surface transition-colors"
-          >
-            <ArrowLeft size={20} className="text-tg-text" />
-          </button>
-          <h1 className="text-display font-bold text-tg-text">Choose Your Plan</h1>
-        </div>
+      <PageHeader
+        title="Choose Your Plan"
+        leftAction={{
+          icon: <ArrowLeft size={20} />,
+          onClick: () => {
+            hapticFeedback('light')
+            navigate('/profile')
+          },
+        }}
+      />
 
-        {/* Billing Period Toggle */}
+      {/* Billing Period Toggle */}
+      <div className="px-4 pb-4">
         <Tabs
           tabs={[
             { id: 'monthly', label: 'Monthly' },
@@ -224,10 +219,10 @@ export default function Subscription() {
             setBillingPeriod(tab as 'monthly' | 'yearly')
           }}
         />
-      </motion.div>
+      </div>
 
       {/* Content */}
-      <div className="px-4 pt-6 space-y-6">
+      <div className="px-4 space-y-6">
         {/* Plan Cards - Desktop 3 columns, Mobile stacked */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <PlanCard
