@@ -78,8 +78,8 @@ export function GainersLosersTable({ coins }: GainersLosersTableProps) {
             </div>
           </div>
 
-          {/* Gainers List */}
-          <div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
+          {/* Gainers List - Show 5 items, scroll for rest */}
+          <div className="overflow-y-auto" style={{ maxHeight: '220px' }}>
             {topGainers.length === 0 ? (
               <div className="px-3 py-8 text-center">
                 <p className="text-body-sm text-tg-hint">No gainers</p>
@@ -124,8 +124,8 @@ export function GainersLosersTable({ coins }: GainersLosersTableProps) {
             </div>
           </div>
 
-          {/* Losers List */}
-          <div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
+          {/* Losers List - Show 5 items, scroll for rest */}
+          <div className="overflow-y-auto" style={{ maxHeight: '220px' }}>
             {topLosers.length === 0 ? (
               <div className="px-3 py-8 text-center">
                 <p className="text-body-sm text-tg-hint">No losers</p>
