@@ -5,6 +5,7 @@ import {
   AltcoinSeasonCard,
   FearGreedGauge,
   GainersLosersTable,
+  CategoriesSection,
 } from '@/features/market'
 import { useMarketOverview } from '@/api/hooks'
 
@@ -74,6 +75,9 @@ export default function MarketPage() {
             <p className="text-body text-tg-hint">No market data available</p>
           </div>
         )}
+
+        {/* Categories Section */}
+        <CategoriesSection />
       </div>
     </div>
   )
