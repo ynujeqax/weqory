@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, Trophy, Award, Medal } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { CoinLogo } from '@/components/common/CoinLogo'
 import type { Coin } from '@/types'
 
 interface GainersLosersTableProps {
@@ -100,21 +99,13 @@ export function GainersLosersTable({ coins }: GainersLosersTableProps) {
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <RankBadge rank={index + 1} />
-                    <CoinLogo symbol={coin.symbol} name={coin.name} size="sm" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-body-sm font-medium text-tg-text truncate">
-                        {coin.symbol}
-                      </span>
-                      <span className="text-body-xs text-tg-hint truncate">
-                        {coin.name}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end flex-shrink-0">
-                    <span className="text-body-sm font-semibold text-crypto-up">
-                      +{(coin.priceChange24hPct ?? 0).toFixed(2)}%
+                    <span className="text-body-sm font-medium text-tg-text truncate">
+                      {coin.symbol}
                     </span>
                   </div>
+                  <span className="text-body-sm font-semibold text-crypto-up flex-shrink-0">
+                    +{(coin.priceChange24hPct ?? 0).toFixed(2)}%
+                  </span>
                 </motion.div>
               ))
             )}
@@ -154,21 +145,13 @@ export function GainersLosersTable({ coins }: GainersLosersTableProps) {
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <RankBadge rank={index + 1} />
-                    <CoinLogo symbol={coin.symbol} name={coin.name} size="sm" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-body-sm font-medium text-tg-text truncate">
-                        {coin.symbol}
-                      </span>
-                      <span className="text-body-xs text-tg-hint truncate">
-                        {coin.name}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end flex-shrink-0">
-                    <span className="text-body-sm font-semibold text-crypto-down">
-                      {(coin.priceChange24hPct ?? 0).toFixed(2)}%
+                    <span className="text-body-sm font-medium text-tg-text truncate">
+                      {coin.symbol}
                     </span>
                   </div>
+                  <span className="text-body-sm font-semibold text-crypto-down flex-shrink-0">
+                    {(coin.priceChange24hPct ?? 0).toFixed(2)}%
+                  </span>
                 </motion.div>
               ))
             )}
