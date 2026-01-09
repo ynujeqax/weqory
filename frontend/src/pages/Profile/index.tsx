@@ -22,7 +22,7 @@ export default function Profile() {
   const { showToast } = useToast()
   const [deleteDialogType, setDeleteDialogType] = useState<DeleteType>(null)
 
-  const { data: userData, isLoading } = useUser()
+  const { data: userData, isLoading, error } = useUser()
   const updateSettings = useUpdateSettings()
   const deleteWatchlist = useDeleteWatchlist()
   const deleteAlerts = useDeleteAlerts()
@@ -99,10 +99,24 @@ export default function Profile() {
     navigate('/profile/subscription')
   }, [navigate, hapticFeedback])
 
-  if (isLoading || !userData) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-tg-bg flex items-center justify-center">
         <Spinner size="lg" />
+      </div>
+    )
+  }
+
+  if (error || !userData) {
+    return (
+      <div className="min-h-screen bg-tg-bg flex flex-col items-center justify-center px-4 text-center">
+        <p className="text-headline font-semibold text-tg-text mb-2">Failed to load profile</p>
+        <p className="text-body text-tg-hint mb-4">
+          {error instanceof Error ? error.message : 'Please try again later'}
+        </p>
+        <Button variant="secondary" onClick={() => window.location.reload()}>
+          Retry
+        </Button>
       </div>
     )
   }
