@@ -125,8 +125,8 @@ func main() {
 	// Initialize CoinGecko sync service
 	cgClient := coingecko.NewClient(cfg.CoinGecko.APIKey, log.Logger)
 	cgSync := coingecko.NewSyncService(cgClient, pool, log.Logger)
-	// Sync top 100 coins every hour
-	cgSync.StartPeriodicSync(ctx, 100, 1*time.Hour)
+	// Sync top 500 coins every hour (covers DeFi, Gaming, AI categories)
+	cgSync.StartPeriodicSync(ctx, 500, 1*time.Hour)
 
 	// Setup rate limiter
 	rateLimiter := redis.NewRateLimiter(redisClient)
