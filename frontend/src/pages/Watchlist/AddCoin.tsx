@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, TrendingUp, AlertCircle, Check, Plus } from 'lucide-react'
+import { ArrowLeft, TrendingUp, Check, Plus } from 'lucide-react'
 import { PageHeader } from '@/components/common/PageHeader'
 import { SearchBar } from '@/components/ui/SearchBar'
 import { CoinLogo } from '@/components/common/CoinLogo'
@@ -46,7 +46,6 @@ export default function AddCoinPage() {
   // Check limits
   const limits = user?.limits
   const canAddMore = limits ? limits.coinsUsed < limits.maxCoins : true
-  const coinsRemaining = limits ? limits.maxCoins - limits.coinsUsed : 0
 
   // Popular coins (top 20 if no search)
   const popularCoins = useMemo(() => {
@@ -100,34 +99,6 @@ export default function AddCoinPage() {
         />
       </div>
 
-      {/* Limit Warning */}
-      {!canAddMore && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mx-4 mb-4 p-3 bg-warning/10 border border-warning/20 rounded-lg flex items-start gap-3"
-        >
-          <AlertCircle size={20} className="text-warning flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-body-sm text-tg-text font-medium mb-1">
-              Watchlist Limit Reached
-            </p>
-            <p className="text-body-sm text-tg-hint">
-              You've reached the maximum of {limits?.maxCoins} coins for your plan.
-              Upgrade to add more.
-            </p>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Remaining Counter */}
-      {canAddMore && limits && (
-        <div className="px-4 pb-3">
-          <p className="text-body-sm text-tg-hint text-center">
-            {coinsRemaining} {coinsRemaining === 1 ? 'slot' : 'slots'} remaining
-          </p>
-        </div>
-      )}
 
       {/* Content */}
       <div className="px-4 py-4">
