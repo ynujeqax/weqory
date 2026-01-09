@@ -5,62 +5,55 @@ import { LucideIcon } from 'lucide-react'
 interface Category {
   id: string
   name: string
-  subtitle: string
   icon: LucideIcon
   gradientFrom: string
   gradientTo: string
-  glowColor: string
 }
 
 const categories: Category[] = [
   {
     id: 'defi',
     name: 'DeFi',
-    subtitle: 'View all',
     icon: Landmark,
     gradientFrom: '#667eea',
     gradientTo: '#764ba2',
-    glowColor: 'rgba(102, 126, 234, 0.3)',
   },
   {
     id: 'layer1',
     name: 'Layer 1',
-    subtitle: 'View all',
     icon: Layers,
     gradientFrom: '#06b6d4',
     gradientTo: '#0891b2',
-    glowColor: 'rgba(6, 182, 212, 0.3)',
   },
   {
     id: 'meme',
     name: 'Meme',
-    subtitle: 'View all',
     icon: Dog,
     gradientFrom: '#f97316',
     gradientTo: '#facc15',
-    glowColor: 'rgba(249, 115, 22, 0.3)',
   },
   {
     id: 'gaming',
     name: 'Gaming',
-    subtitle: 'View all',
     icon: Gamepad2,
     gradientFrom: '#ec4899',
     gradientTo: '#8b5cf6',
-    glowColor: 'rgba(236, 72, 153, 0.3)',
   },
   {
     id: 'ai',
     name: 'AI',
-    subtitle: 'View all',
     icon: Brain,
     gradientFrom: '#10b981',
     gradientTo: '#059669',
-    glowColor: 'rgba(16, 185, 129, 0.3)',
   },
 ]
 
 export function CategoriesSection() {
+  const handleCategoryClick = (categoryId: string) => {
+    // TODO: Navigate to category page or filter coins
+    console.log('Category clicked:', categoryId)
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -73,75 +66,78 @@ export function CategoriesSection() {
         Categories
       </h2>
 
-      {/* Horizontal Scrollable Container */}
-      <div
-        className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide"
-        style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}
-      >
-        {categories.map((category, index) => {
-          const Icon = category.icon
-          return (
-            <motion.button
+      {/* Grid Layout - 3 columns top, 2 columns bottom */}
+      <div className="space-y-2">
+        {/* First Row - 3 items */}
+        <div className="grid grid-cols-3 gap-2">
+          {categories.slice(0, 3).map((category, index) => (
+            <CategoryCard
               key={category.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                duration: 0.3,
-                delay: 0.25 + index * 0.05,
-              }}
-              whileTap={{ scale: 0.96 }}
-              className="flex-shrink-0 w-[120px] h-[100px] rounded-xl overflow-hidden snap-start relative group"
-              style={{
-                background: `linear-gradient(135deg, ${category.gradientFrom} 0%, ${category.gradientTo} 100%)`,
-                boxShadow: `0 4px 16px ${category.glowColor}, 0 8px 32px rgba(0, 0, 0, 0.3)`,
-              }}
-            >
-              {/* Gradient Overlay for Depth */}
-              <div
-                className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                aria-hidden="true"
-              />
+              category={category}
+              index={index}
+              onClick={() => handleCategoryClick(category.id)}
+            />
+          ))}
+        </div>
 
-              {/* Content Container */}
-              <div className="relative h-full flex flex-col items-center justify-center gap-1.5 p-3">
-                {/* Icon with Background */}
-                <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Icon size={20} className="text-white" strokeWidth={2.5} />
-                </div>
+        {/* Second Row - 2 items */}
+        <div className="grid grid-cols-2 gap-2">
+          {categories.slice(3, 5).map((category, index) => (
+            <CategoryCard
+              key={category.id}
+              category={category}
+              index={index + 3}
+              onClick={() => handleCategoryClick(category.id)}
+            />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
 
-                {/* Category Name */}
-                <h3 className="text-body font-semibold text-white tracking-tight">
-                  {category.name}
-                </h3>
+interface CategoryCardProps {
+  category: Category
+  index: number
+  onClick: () => void
+}
 
-                {/* Subtitle */}
-                <p className="text-body-xs font-medium text-white/80">
-                  {category.subtitle}
-                </p>
-              </div>
+function CategoryCard({ category, index, onClick }: CategoryCardProps) {
+  const Icon = category.icon
 
-              {/* Shine Effect */}
-              <div
-                className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{
-                  transform: 'translateX(-100%) translateY(-100%) rotate(45deg)',
-                }}
-                aria-hidden="true"
-              />
-            </motion.button>
-          )
-        })}
+  return (
+    <motion.button
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{
+        duration: 0.3,
+        delay: 0.25 + index * 0.05,
+      }}
+      whileTap={{ scale: 0.96 }}
+      onClick={onClick}
+      className="h-[72px] rounded-xl overflow-hidden relative group active:opacity-90"
+      style={{
+        background: `linear-gradient(135deg, ${category.gradientFrom} 0%, ${category.gradientTo} 100%)`,
+      }}
+    >
+      {/* Content Container */}
+      <div className="relative h-full flex items-center justify-center gap-2 px-3">
+        {/* Icon */}
+        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+          <Icon size={18} className="text-white" strokeWidth={2.5} />
+        </div>
+
+        {/* Category Name */}
+        <h3 className="text-body font-semibold text-white">
+          {category.name}
+        </h3>
       </div>
 
-      {/* CSS to hide scrollbar */}
-      <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-    </motion.div>
+      {/* Hover/Active Overlay */}
+      <div
+        className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-200"
+        aria-hidden="true"
+      />
+    </motion.button>
   )
 }
