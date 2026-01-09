@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { TrendingUp } from 'lucide-react'
 import { useTelegram } from '@/hooks/useTelegram'
@@ -10,6 +11,7 @@ import { toast } from '@/components/ui/Toast'
 
 export default function AuthPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { initData } = useTelegram()
   const { setUser, setLimits, setToken, isAuthenticated } = useAuthStore()
 
@@ -32,6 +34,10 @@ export default function AuthPage() {
       })
 
       const { user, token: authToken } = response.data
+
+      // Clear any stale query cache from previous sessions
+      // This prevents old failed queries from being reused
+      queryClient.clear()
 
       // IMPORTANT: Set token BEFORE user to avoid race condition
       // setUser sets isAuthenticated: true, which triggers queries

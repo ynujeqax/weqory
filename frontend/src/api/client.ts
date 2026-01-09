@@ -34,7 +34,17 @@ apiClient.interceptors.response.use(
 
     if (error.response?.status === 401 && !isAuthEndpoint) {
       const authStore = useAuthStore.getState()
-      if (authStore.isAuthenticated) {
+      const currentToken = authStore.token
+
+      // Get the token that was used in the failed request
+      const requestAuthHeader = error.config?.headers?.Authorization as string | undefined
+      const requestToken = requestAuthHeader?.replace('Bearer ', '')
+
+      // Only logout if:
+      // 1. User is authenticated
+      // 2. The request was made with the current token (not a stale request)
+      // If request had no token or different token, it's a stale request - don't logout
+      if (authStore.isAuthenticated && currentToken && requestToken === currentToken) {
         // Clear auth state - components will redirect via AuthGuard
         authStore.logout()
       }
