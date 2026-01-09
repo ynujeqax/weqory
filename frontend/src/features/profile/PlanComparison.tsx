@@ -77,10 +77,10 @@ export function PlanComparison() {
                       className="border-b border-white/5 last:border-0"
                     >
                       <td className="py-3 text-tg-text">{feature.name}</td>
-                      <td className="py-3 text-center text-tg-hint">
+                      <td className="py-3 text-center text-tg-hint font-medium">
                         {feature.standard}
                       </td>
-                      <td className="py-3 text-center text-tg-text">
+                      <td className="py-3 text-center text-warning font-medium">
                         {feature.pro}
                       </td>
                       <td className="py-3 text-center text-cyan-400 font-medium">
