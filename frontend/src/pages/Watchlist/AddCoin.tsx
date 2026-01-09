@@ -52,10 +52,14 @@ export default function AddCoinPage() {
     navigate(-1)
   }
 
-  const handleToggleCoin = async (coin: Coin) => {
-    const inWatchlist = isInWatchlist(coin.symbol)
+  const handleAddCoin = async (coin: Coin) => {
+    if (isInWatchlist(coin.symbol)) {
+      // Already in watchlist, just go back
+      navigate('/')
+      return
+    }
 
-    if (!inWatchlist && !canAddMore) {
+    if (!canAddMore) {
       hapticFeedback('error')
       return
     }
@@ -63,8 +67,10 @@ export default function AddCoinPage() {
     try {
       hapticFeedback('light')
       await addToWatchlist.mutateAsync(coin.symbol)
+      hapticFeedback('success')
+      navigate('/')
     } catch (error) {
-      console.error('Failed to toggle coin:', error)
+      console.error('Failed to add coin:', error)
       hapticFeedback('error')
     }
   }
@@ -105,7 +111,7 @@ export default function AddCoinPage() {
                   key={coin.id}
                   coin={coin}
                   isAdded={isInWatchlist(coin.symbol)}
-                  onToggle={() => handleToggleCoin(coin)}
+                  onAdd={() => handleAddCoin(coin)}
                   disabled={!canAddMore && !isInWatchlist(coin.symbol)}
                 />
               ))}
@@ -124,11 +130,11 @@ export default function AddCoinPage() {
 interface CoinRowProps {
   coin: Coin
   isAdded: boolean
-  onToggle: () => void
+  onAdd: () => void
   disabled?: boolean
 }
 
-function CoinRow({ coin, isAdded, onToggle, disabled }: CoinRowProps) {
+function CoinRow({ coin, isAdded, onAdd, disabled }: CoinRowProps) {
   const { hapticFeedback } = useTelegram()
 
   const handleClick = () => {
@@ -136,7 +142,7 @@ function CoinRow({ coin, isAdded, onToggle, disabled }: CoinRowProps) {
       hapticFeedback('error')
       return
     }
-    onToggle()
+    onAdd()
   }
 
   return (
