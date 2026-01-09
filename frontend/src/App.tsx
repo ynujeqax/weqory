@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useTelegram } from '@/hooks/useTelegram'
 import { AppRouter } from '@/app/Router'
@@ -13,6 +13,38 @@ import { useSyncPendingMutations } from '@/api/hooks'
 function OfflineSyncManager() {
   useSyncPendingMutations()
   return null
+}
+
+// Main app layout - different for auth vs authenticated pages
+function AppLayout() {
+  const location = useLocation()
+  const isAuthPage = location.pathname === '/auth'
+
+  // Auth page gets full screen without nav or padding
+  if (isAuthPage) {
+    return (
+      <>
+        <AppRouter />
+        <ToastContainer />
+      </>
+    )
+  }
+
+  // Authenticated pages get full layout with nav, price stream, etc.
+  return (
+    <PriceStreamProvider>
+      <OfflineSyncManager />
+      <OfflineIndicator />
+      <UpdateNotification />
+      <div className="flex flex-col h-screen pt-14 pb-14 w-full max-w-md mx-auto overflow-hidden">
+        <main className="flex-1 overflow-y-auto">
+          <AppRouter />
+        </main>
+        <BottomNav />
+      </div>
+      <ToastContainer />
+    </PriceStreamProvider>
+  )
 }
 
 // Create React Query client
@@ -57,18 +89,7 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
-            <PriceStreamProvider>
-              <OfflineSyncManager />
-              <OfflineIndicator />
-              <UpdateNotification />
-              <div className="flex flex-col h-screen pt-14 pb-14 w-full max-w-md mx-auto overflow-hidden">
-                <main className="flex-1 overflow-y-auto">
-                  <AppRouter />
-                </main>
-                <BottomNav />
-              </div>
-              <ToastContainer />
-            </PriceStreamProvider>
+            <AppLayout />
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

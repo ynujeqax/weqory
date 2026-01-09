@@ -17,6 +17,11 @@ export function BottomNav() {
   const navigate = useNavigate()
   const { hapticFeedback } = useTelegram()
 
+  // Don't show nav on auth page
+  if (location.pathname === '/auth') {
+    return null
+  }
+
   const handleNavigation = (path: string) => {
     hapticFeedback('selection')
     navigate(path)

@@ -4,7 +4,18 @@ import { useWatchlist } from '@/api/hooks'
 import { useAuthStore } from '@/stores/authStore'
 import type { PriceUpdate } from '@/types'
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080'
+// Build WebSocket URL - handle both cases:
+// 1. VITE_WS_URL = "wss://api.example.com" -> append /ws/prices
+// 2. VITE_WS_URL = "wss://api.example.com/ws/prices" -> use as-is
+function getWebSocketUrl(): string {
+  const baseUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8080'
+  // If URL already ends with /ws/prices, use it directly
+  if (baseUrl.endsWith('/ws/prices')) {
+    return baseUrl
+  }
+  // Otherwise append the path
+  return `${baseUrl}/ws/prices`
+}
 
 interface WebSocketMessage {
   type: 'subscribe' | 'unsubscribe' | 'price_update' | 'ping' | 'pong' | 'error'
@@ -18,8 +29,10 @@ interface PriceStreamProviderProps {
 export function PriceStreamProvider({ children }: PriceStreamProviderProps) {
   const { token, isAuthenticated } = useAuthStore()
   const { updatePrice, setConnectionStatus, clearPrices } = usePricesStore()
-  // Only fetch watchlist when authenticated to avoid 401 errors
-  const { data: watchlist } = useWatchlist({ enabled: isAuthenticated })
+
+  // Only fetch watchlist when authenticated - prevents 401 errors
+  // Skip the hook entirely when not authenticated
+  const { data: watchlist } = useWatchlist({ enabled: isAuthenticated && !!token })
 
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
@@ -62,7 +75,7 @@ export function PriceStreamProvider({ children }: PriceStreamProviderProps) {
     if (!token) return
     if (wsRef.current?.readyState === WebSocket.OPEN) return
 
-    const ws = new WebSocket(`${WS_URL}/ws/prices`)
+    const ws = new WebSocket(getWebSocketUrl())
     wsRef.current = ws
 
     ws.onopen = () => {
