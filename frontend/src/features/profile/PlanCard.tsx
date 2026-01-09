@@ -19,7 +19,7 @@ interface PlanCardProps {
 }
 
 export function PlanCard({
-  plan: _plan,
+  plan,
   name,
   priceMonthly,
   priceYearly,
@@ -32,6 +32,7 @@ export function PlanCard({
 }: PlanCardProps) {
   const price = billingPeriod === 'yearly' ? priceYearly : priceMonthly
   const isFree = !price
+  const isUltimate = plan === 'ultimate'
 
   return (
     <motion.div
@@ -42,6 +43,8 @@ export function PlanCard({
         'relative overflow-hidden rounded-lg border-2 transition-all',
         isCurrent
           ? 'border-success bg-success-soft'
+          : isUltimate
+          ? 'border-cyan-400 bg-cyan-500/10'
           : isPopular
           ? 'border-warning bg-surface-elevated'
           : 'border-white/10 bg-surface'
@@ -51,9 +54,9 @@ export function PlanCard({
       {(isPopular || isBestValue) && (
         <div className="absolute top-3 right-3">
           <Badge
-            variant={isPopular ? 'warning' : 'success'}
+            variant={isUltimate ? 'default' : isPopular ? 'warning' : 'success'}
             size="sm"
-            className="font-semibold"
+            className={cn('font-semibold', isUltimate && 'bg-cyan-500 text-white')}
           >
             {isPopular ? 'Most Popular' : 'Best Value'}
           </Badge>

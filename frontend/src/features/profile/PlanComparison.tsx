@@ -62,7 +62,7 @@ export function PlanComparison() {
                     <th className="py-2 text-center font-semibold text-warning">
                       Pro
                     </th>
-                    <th className="py-2 text-center font-semibold text-success">
+                    <th className="py-2 text-center font-semibold text-cyan-400">
                       Ultimate
                     </th>
                   </tr>
@@ -83,7 +83,7 @@ export function PlanComparison() {
                       <td className="py-3 text-center text-tg-text">
                         {feature.pro}
                       </td>
-                      <td className="py-3 text-center text-success font-medium">
+                      <td className="py-3 text-center text-cyan-400 font-medium">
                         {feature.ultimate}
                       </td>
                     </motion.tr>
