@@ -4,12 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Check, Plus } from 'lucide-react'
 import { PageHeader } from '@/components/common/PageHeader'
 import { SearchBar } from '@/components/ui/SearchBar'
-import { CoinLogo } from '@/components/common/CoinLogo'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
 import { CoinSkeleton } from '@/components/ui/Skeleton'
 import { useAvailableCoins, useWatchlist, useAddToWatchlist, useUser } from '@/api/hooks'
-import { cn, formatPrice, formatLargeNumber } from '@/lib/utils'
+import { cn, formatPrice } from '@/lib/utils'
 import { useTelegram } from '@/hooks/useTelegram'
 import type { Coin } from '@/types'
 
@@ -157,38 +155,23 @@ function CoinRow({ coin, isAdded, onToggle, disabled }: CoinRowProps) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       className={cn(
-        'bg-surface rounded-lg p-4 flex items-center justify-between',
+        'bg-surface rounded-lg p-3 flex items-center justify-between',
         disabled && 'opacity-50'
       )}
     >
       {/* Left: Coin Info */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <CoinLogo symbol={coin.symbol} name={coin.name} size="md" />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <p className="text-label font-semibold text-tg-text truncate">
-              {coin.symbol}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="text-label font-semibold text-tg-text">
+            {coin.symbol}
+          </p>
+          {coin.currentPrice && (
+            <p className="text-body-sm font-mono text-tg-hint">
+              {formatPrice(coin.currentPrice)}
             </p>
-            {coin.rank && coin.rank <= 10 && (
-              <Badge variant="primary" size="sm">
-                #{coin.rank}
-              </Badge>
-            )}
-          </div>
-          <p className="text-body-sm text-tg-hint truncate">{coin.name}</p>
-          <div className="flex items-center gap-3 mt-1">
-            {coin.currentPrice && (
-              <p className="text-body-sm font-mono text-tg-text">
-                {formatPrice(coin.currentPrice)}
-              </p>
-            )}
-            {coin.marketCap && (
-              <p className="text-body-sm text-tg-hint">
-                {formatLargeNumber(coin.marketCap)}
-              </p>
-            )}
-          </div>
+          )}
         </div>
+        <p className="text-body-sm text-tg-hint truncate">{coin.name}</p>
       </div>
 
       {/* Right: Toggle Button */}
